@@ -20,7 +20,6 @@ public class FreeBoard1 {
     @Column(name = "no", length = 11)
     int no;
 
-    
     String title;
     String content;
     String writer;

@@ -16,7 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "DailyMenu")
+@Table(name = "dailymenu")
 public class DailyMenu {
 
     @Id
@@ -27,7 +27,7 @@ public class DailyMenu {
     @ManyToOne
     @JoinColumn(name = "menu_no" , referencedColumnName = "menu_no")
     @JsonProperty(access = Access.WRITE_ONLY)
-    Menu menuNol
+    Menu menuNol;
 
     int price;
 
