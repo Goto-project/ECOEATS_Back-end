@@ -4,6 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import com.example.entity.FreeBoard1;
+import com.example.entity.FreeBoard1Projection;
 
 @Repository
 public interface FreeBoard1Repository extends CrudRepository<FreeBoard1, Integer> {
