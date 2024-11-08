@@ -30,7 +30,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "dailymenu_no" , referencedColumnName = "dailymenu_no")
-    Dailymenu dailymenuNo;
+    DailyMenu dailymenuNo;
 
     int qty;
 
