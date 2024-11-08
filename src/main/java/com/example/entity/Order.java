@@ -33,6 +33,7 @@ public class Order {
     DailyMenu dailymenuNo;
 
     int qty;
+    
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @CreationTimestamp
