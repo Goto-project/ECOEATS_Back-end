@@ -18,5 +18,17 @@ public class HomeController {
     public String customer() {
         return "forward:/react1/index.html";
     }
+
+    //react => build => 표시
+    @GetMapping(value = "/page403.do")
+    public String page403() {
+        return "page403";
+    }
+
+    @GetMapping(value = "/sse.do")
+    public String sse() {
+        return "sse";
+    }
+    
     
 }
