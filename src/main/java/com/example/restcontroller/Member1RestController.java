@@ -35,7 +35,7 @@ public class Member1RestController {
     public Map<String, Object> updatePOST(@RequestBody Member1 obj){
         Map<String, Object> map = new HashMap<>();
         try{
-
+            
         } catch(Exception e){
             System.err.println(e.getMessage());
             map.put("status", -1);

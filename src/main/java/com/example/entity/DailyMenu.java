@@ -20,8 +20,6 @@ import lombok.Data;
 @Table(name = "dailymenu")
 @Data
 public class DailyMenu {
-
-
     
     @Id
     @Column(name = "dailymenu_no")
