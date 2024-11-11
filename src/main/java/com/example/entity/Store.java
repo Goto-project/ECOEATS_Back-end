@@ -36,8 +36,12 @@ public class Store {
     String category;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    @Column(name = "default_pickup")
-    LocalTime defaultPickup;
+    @Column(name = "start_pickup")
+    LocalTime startPickup;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    @Column(name = "end_pickup")
+    LocalTime endPickup;
 
     @Transient
     String role = "SELLER";

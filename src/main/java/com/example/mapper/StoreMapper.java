@@ -10,8 +10,8 @@ import com.example.dto.Store;
 public interface StoreMapper {
 
     //회원가입 INSERT, UPDATE, DELETE는 반환값이 int로 고정됨
-    @Insert({"INSERT INTO store(store_id, store_email, password, store_name, address, phone, category, default_pickup)",
-            " VALUES(#{storeId}, #{storeEmail}, #{password}, #{storeName}, #{address}, #{phone}, #{category}, #{defaultPickup})"})
+    @Insert({"INSERT INTO store(store_id, store_email, password, store_name, address, phone, category, start_pickup, end_pickup)",
+            " VALUES(#{storeId}, #{storeEmail}, #{password}, #{storeName}, #{address}, #{phone}, #{category}, #{startPickup}, #{endPickup})"})
     public int insertStoreOne(Store store);
 
     //로그인 처리 -> 아이디를 전달받으면 해당하는 정보를 반환
