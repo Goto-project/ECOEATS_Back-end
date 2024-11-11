@@ -29,7 +29,7 @@ public class DailyMenu {
     @ManyToOne
     @JoinColumn(name = "menu_no" , referencedColumnName = "menu_no")
     @JsonProperty(access = Access.WRITE_ONLY)
-    Menu menuNol;
+    Menu menuNo;
 
     int price;
 
