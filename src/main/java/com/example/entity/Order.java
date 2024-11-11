@@ -16,6 +16,7 @@ import lombok.Data;
 
 @Entity
 @Table(name = "order")
+@Data
 public class Order {
     
     @Id

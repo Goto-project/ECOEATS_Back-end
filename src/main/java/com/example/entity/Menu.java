@@ -15,6 +15,7 @@ import lombok.Data;
 
 @Entity
 @Table(name = "menu")
+@Data
 public class Menu {
     
     @Id

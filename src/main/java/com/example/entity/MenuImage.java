@@ -15,6 +15,7 @@ import lombok.Data;
 
 @Entity
 @Table(name = "menuimage")
+@Data
 public class MenuImage {
     
     @Id
