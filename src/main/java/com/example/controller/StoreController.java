@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping(value = "/seller")
-public class SellerController {
-    
+public class StoreController {
+
     @GetMapping(value = "/home.do")
     public String home(@AuthenticationPrincipal User user){
         System.out.println(user.toString());
-        return "seller_home";
+        return "store_home";
     }
 }

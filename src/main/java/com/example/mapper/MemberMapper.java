@@ -20,4 +20,9 @@ public interface MemberMapper {
     @Insert({"INSERT INTO member1(id, pw, name, phone, age, role)",
             " VALUES(#{id}, #{pw}, #{name}, #{phone}, #{age}, #{role})" })
     public int insertMember1One(Member1 obj);
+
+    //로그인 처리 -> 아이디를 전달받으면 해당하는 정보를 반환
+    //아이디, 암호, 권한
+    @Select({"SELECT id, pw, role FROM member1 WHERE id=#{id}"})
+    public Member1 selectMemberOne(String id);
 }

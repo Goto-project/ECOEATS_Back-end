@@ -11,20 +11,22 @@
     <a th:href="@{/seller/home.do?menu=1}"><button>물품등록</button></a>
     <a th:href="@{/seller/home.do?menu=2}"><button>주문관리</button></a>
     <a th:href="@{/seller/home.do?menu=3}"><button>회원관리</button></a>
-    <form th:action="@{/logout.do}" method="post">
+
+    <form th:action="@{/logout.do}" method="POST" style="display: inline-block;">
         <button type="submit">로그아웃</button>
     </form>
     <hr/>
 
-    <div th:if="{#string.equals(para,.menu, '1')}" >
-        <th:block  th:replace="~{/seller/menu}">
-    </div>
-    <div th:if="{#string.equals(para,.menu, '2')}" >
-        <th:block  th:replace="~{/seller/menu}">
-    </div>
-    <div th:if="{#string.equals(para,.menu, '3')}" >
-        <th:block  th:replace="~{/seller/menu}">
+    <div th:if="${#strings.equals(param.menu, 1)}">
+        1
     </div>
 
+    <div th:if="${#strings.equals(param.menu, 2)}">
+        2
+    </div>
+    
+    <div th:if="${#strings.equals(param.menu, 3)}">
+        3
+    </div>
 </body>
 </html>

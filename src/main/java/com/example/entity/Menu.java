@@ -1,5 +1,6 @@
 package com.example.entity;
 
+import org.hibernate.annotations.ManyToAny;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -12,9 +13,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-@Data
 @Entity
 @Table(name = "menu")
+@Data
 public class Menu {
     
     @Id

@@ -13,9 +13,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-@Data
 @Entity
-@Table(name = "pickup_pay")
+@Table(name = "pickup")
+@Data
 public class Pickup {
     
     @Id
