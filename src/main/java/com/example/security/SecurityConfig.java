@@ -19,12 +19,11 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests((authorize) -> authorize
-            .requestMatchers("/admin", "/admin/").hasRole("ADMIN")
-            .requestMatchers("/seller", "/seller/").hasAnyRole("ADMIN", "SELLER")
-            .requestMatchers("/customer", "/customer/*").hasRole("CUSTOMER")
-            .requestMatchers("/member1", "/member1/**").permitAll()
-            .anyRequest().permitAll()
-    );
+                .requestMatchers("/admin", "/admin/*").hasRole("ADMIN")
+                .requestMatchers("/seller", "/seller/*").hasAnyRole("ADMIN", "SELLER")
+                .requestMatchers("/customer", "/customer/*").hasRole("CUSTOEMR")
+                .requestMatchers("/member1", "/member1/**").permitAll()
+                .anyRequest().permitAll());
 
         // 세션저장 설정 ALWAYS(세션 저장됨), NEVER(세션 저장 안됨), STATELESS(rest용 세션)
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));

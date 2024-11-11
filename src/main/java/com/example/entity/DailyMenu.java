@@ -19,6 +19,8 @@ import jakarta.persistence.Table;
 @Table(name = "dailymenu")
 public class DailyMenu {
 
+
+    
     @Id
     @Column(name = "dailymenu_no")
     int dailymenuNo;
