@@ -1,6 +1,9 @@
 package com.example.entity;
 
+import java.time.LocalTime;
 import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,8 +35,9 @@ public class Store {
 
     String category;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     @Column(name = "default_pickup")
-    Date defaultPickup;
+    LocalTime defaultPickup;
 
     @Transient
     String role = "SELLER";
