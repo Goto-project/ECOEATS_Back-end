@@ -17,3 +17,4 @@ public interface FreeBoard1Repository extends CrudRepository<FreeBoard1, Integer
 
     // findBy ... 로 해결이 안될 때 => SQL문으로 처리
 }
+
