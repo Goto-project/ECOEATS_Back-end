@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>판매자 홈</h3>
+
+    <a th:href="@{/seller/home.do?menu=1}"><button>물품등록</button></a>
+    <a th:href="@{/seller/home.do?menu=2}"><button>주문관리</button></a>
+    <a th:href="@{/seller/home.do?menu=3}"><button>회원관리</button></a>
+    <form th:action = "@{/logout.do}" method="post" style="display: inline-block;">
+        <button type="submit">로그아웃</button>
+    </form>
+    <hr/>
+
+    <div th:if ="${#strings.equals(param.menu,'1')}">
+        <th:block th:replace ="~{/seller/menu1}">
+    </div>
+
+    <div th:if ="${#strings.equals(param.menu,'2')}">
+        <th:block th:replace ="~{/seller/menu2}">
+    </div>
+
+    <div th:if ="${#strings.equals(param.menu,'3')}">
+        <th:block th:replace ="~{/seller/menu3}">
+    </div>
+</body>
+</html>
