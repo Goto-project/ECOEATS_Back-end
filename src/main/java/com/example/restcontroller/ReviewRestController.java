@@ -21,12 +21,13 @@ public class ReviewRestController {
     final ReviewRepository reviewRepository;
 
 
-    // 127.0.0.1:8080/ROOT/api/store/selectall.json
-    @GetMapping(value = "/api/review/selectall.json")
+    // 127.0.0.1:8080/ROOT/api/review/selectall.json
+    @GetMapping(value = "/selectall.json")
     public Map<String, Object> selectallGET() {
         Map<String, Object> map = new HashMap<>();
         try {
             List<Review> list = reviewRepository.findAll();
+            System.out.println(list.toString());
 
             map.put("status", 200);
             map.put("list", list);
