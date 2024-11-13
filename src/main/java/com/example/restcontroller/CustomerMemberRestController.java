@@ -50,8 +50,6 @@ public class CustomerMemberRestController {
         try{
             Map<String, Object> tokenData = tokenCreate.validateCustomerToken(token);
             String customerEmail = (String) tokenData.get("customerEmail");
-            String customerNickname = (String) tokenData.get("customerNickname");
-            String customerPhone = (String) tokenData.get("customerPhone");
 
             //DB에서
             CustomerMember customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
@@ -67,6 +65,10 @@ public class CustomerMemberRestController {
             }
             if (obj.getPhone() != null && !obj.getPhone().isEmpty()) {
                 customerMember.setPhone(obj.getPhone());
+            }
+            if (obj.getPassword() != null && !obj.getPassword().isEmpty()) {
+                String encodedPassword = bcpe.encode(obj.getPassword());
+                customerMember.setPassword(encodedPassword);
             }
 
             int result = customerMemberMapper.updateCustomer(customerMember);

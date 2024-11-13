@@ -27,8 +27,5 @@ public interface CustomerMemberMapper {
 
     // 닉네임 ,핸드폰 변경
     @Update({ "UPDATE customer_member SET password=#{password}, nickname=#{nickname}, phone=#{phone} WHERE customer_email=#{customerEmail}" })
-    @Results({
-        @Result(property = "customerEmail", column = "customer_email"),
-})
     public int updateCustomer(CustomerMember customerMember);
 }
