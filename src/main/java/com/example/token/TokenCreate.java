@@ -101,12 +101,12 @@ public class TokenCreate {
 
             // 토큰에서 추출하기 (key값은 토큰을 생성할 때 적용했던 값과 일치해야 함)
             String storeId = (String) result.getPayload().get("storeId");
-            String name = (String) result.getPayload().get("name");
+            String role = (String) result.getPayload().get("role");
 
             //추출한 정보 반환
             Map<String, Object> map = new HashMap<>();
             map.put("storeId", storeId);
-            map.put("name", name);
+            map.put("role", role);
             return map;
             // result.getPayload().forEach((key1, value1) -> log.info("key : {}, value :{}",
             // key1, value1));

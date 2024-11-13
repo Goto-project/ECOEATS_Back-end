@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,10 +12,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.dto.Store;
 import com.example.dto.StoreToken;
+import com.example.entity.StoreImage;
 import com.example.mapper.StoreMapper;
 import com.example.mapper.TokenMapper;
 import com.example.token.TokenCreate;
@@ -43,11 +47,11 @@ public class StoreRestController {
         Map<String, Object> map = new HashMap<>();
 
         // Bearer 접두사를 제거하여 순수 토큰만 전달
-        // String rawToken = token.replace("Bearer ", "").trim();
+        String rawToken = token.replace("Bearer ", "").trim();
 
         try {
             // 토큰 유효성 검사 및 storeId 추출
-            Map<String, Object> tokenData = tokenCreate.validateSellerToken(token);
+            Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
             String storeId = (String) tokenData.get("storeId");
             if (storeId == null) {
                 map.put("status", 401);
@@ -99,17 +103,45 @@ public class StoreRestController {
                 return map;
             }
 
-            // 요청받은 객체에 로그인된 사용자 이메일을 설정
-            store.setStoreId(storeId);
+            Store seller = storeMapper.selectStoreOne(storeId);
+
+            if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
+                seller.setStoreName(store.getStoreName());
+            }
 
             // 비밀번호가 수정되는 경우에만 암호화 처리
             if (store.getPassword() != null && !store.getPassword().isEmpty()) {
                 String encodedPassword = bcpe.encode(store.getPassword());
-                store.setPassword(encodedPassword);
+                seller.setPassword(encodedPassword);
+            }
+
+            // 입력값이 없을 때 DB에 null이 들어가지 않도록 처리
+            if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
+                seller.setStoreName(store.getStoreName());
+            }
+
+            if (store.getAddress() != null && !store.getAddress().isEmpty()) {
+                seller.setAddress(store.getAddress());
+            }
+
+            if (store.getPhone() != null && !store.getPhone().isEmpty()) {
+                seller.setPhone(store.getPhone());
+            }
+
+            if (store.getCategory() != null && !store.getCategory().isEmpty()) {
+                seller.setCategory(store.getCategory());
+            }
+
+            if (store.getStartPickup() != null) {
+                seller.setStartPickup(store.getStartPickup());
+            }
+
+            if (store.getEndPickup() != null) {
+                seller.setEndPickup(store.getEndPickup());
             }
 
             // 닉네임과 핸드폰 정보 업데이트
-            int result = storeMapper.updateStore(store);
+            int result = storeMapper.updateStore(seller);
 
             // 업데이트 성공 여부 확인
             if (result > 0) {
@@ -145,8 +177,8 @@ public class StoreRestController {
                 // 토큰 발행할 데이터 생성(아이디, 이름...)
                 Map<String, Object> send1 = new HashMap<>();
                 send1.put("storeId", seller.getStoreId());
-                send1.put("name", seller.getStoreName());
-
+                send1.put("role", seller.getRole());
+                
                 // 토큰 생성 seller 아이디, 만료시간
                 Map<String, Object> map1 = tokenCreate.generateSellerToken(send1);
 
@@ -174,8 +206,9 @@ public class StoreRestController {
     // {"storeId":"a201", "storeEmail":"abc@test.com", "password":"a201",
     // "storeName":"가나다", "address":"서면", "phone":"010", "category":"도시락",
     // "defaultPickup":"15:30"}
-    @PostMapping(value = "/join.do")
-    public Map<String, Object> joinPOST(@RequestBody Store store) {
+    @PostMapping(value = "/join.do", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public Map<String, Object> joinPOST(@RequestPart Store store,
+            @RequestPart("file") MultipartFile file) {
         System.out.println(store.toString());
         Map<String, Object> map = new HashMap<>();
 
@@ -185,8 +218,15 @@ public class StoreRestController {
 
             int ret = storeMapper.insertStoreOne(store);
             map.put("status", 0);
+
             if (ret == 1) {
                 map.put("status", 200);
+
+                // StoreImage 테이블에 이미지 저장
+                // if (file != null && !file.isEmpty()) {
+                //     StoreImage storeImage = new StoreImage();
+                //     storeImage.setStoreId(store);
+                // }
             }
 
         } catch (Exception e) {
