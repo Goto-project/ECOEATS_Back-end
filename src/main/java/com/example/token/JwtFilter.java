@@ -77,14 +77,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // 토큰 검증, 유효하지 않거나 기타 등등하면 catch로 넘어가서 처리됨
             try { // 판매자용 토큰 검증
-                Map<String, Object> sellerClaims = tokenCreate.validateSellerToken(token1);
+                // Map<String, Object> sellerClaims = tokenCreate.validateSellerToken(token1);
                 Map<String, Object> customerClaims = tokenCreate.validateCustomerToken(token1);
-                if (sellerClaims != null) {
-                    // 판매자 토큰이 유효하면, 요청에 판매자 정보를 담기
-                    request.setAttribute("storeId", sellerClaims.get("storeId"));
-                    request.setAttribute("name", sellerClaims.get("name"));
-                    System.out.println("판매자 토큰: " + sellerClaims);
-                }
+                // if (sellerClaims != null) {
+                //     // 판매자 토큰이 유효하면, 요청에 판매자 정보를 담기
+                //     request.setAttribute("storeId", sellerClaims.get("storeId"));
+                //     request.setAttribute("name", sellerClaims.get("name"));
+                //     System.out.println("판매자 토큰: " + sellerClaims);
+                // }
                 if(customerClaims != null) {
                     // 판매자 토큰이 유효하면, 요청에 판매자 정보를 담기
                     request.setAttribute("customerEmail", customerClaims.get("customerEmail"));
