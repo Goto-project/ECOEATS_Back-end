@@ -43,11 +43,11 @@ public class StoreRestController {
         Map<String, Object> map = new HashMap<>();
 
         // Bearer 접두사를 제거하여 순수 토큰만 전달
-        // String rawToken = token.replace("Bearer ", "").trim();
+        String rawToken = token.replace("Bearer ", "").trim();
 
         try {
             // 토큰 유효성 검사 및 storeId 추출
-            Map<String, Object> tokenData = tokenCreate.validateSellerToken(token);
+            Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
             String storeId = (String) tokenData.get("storeId");
             if (storeId == null) {
                 map.put("status", 401);
@@ -99,17 +99,45 @@ public class StoreRestController {
                 return map;
             }
 
-            // 요청받은 객체에 로그인된 사용자 이메일을 설정
-            store.setStoreId(storeId);
+            Store seller = storeMapper.selectStoreOne(storeId);
+
+            if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
+                seller.setStoreName(store.getStoreName());
+            }
 
             // 비밀번호가 수정되는 경우에만 암호화 처리
             if (store.getPassword() != null && !store.getPassword().isEmpty()) {
                 String encodedPassword = bcpe.encode(store.getPassword());
-                store.setPassword(encodedPassword);
+                seller.setPassword(encodedPassword);
+            }
+
+            // 입력값이 없을 때 DB에 null이 들어가지 않도록 처리
+            if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
+                seller.setStoreName(store.getStoreName());
+            }
+    
+            if (store.getAddress() != null && !store.getAddress().isEmpty()) {
+                seller.setAddress(store.getAddress());
+            }
+    
+            if (store.getPhone() != null && !store.getPhone().isEmpty()) {
+                seller.setPhone(store.getPhone());
+            }
+    
+            if (store.getCategory() != null && !store.getCategory().isEmpty()) {
+                seller.setCategory(store.getCategory());
+            }
+    
+            if (store.getStartPickup() != null) {
+                seller.setStartPickup(store.getStartPickup());
+            }
+    
+            if (store.getEndPickup() != null) {
+                seller.setEndPickup(store.getEndPickup());
             }
 
             // 닉네임과 핸드폰 정보 업데이트
-            int result = storeMapper.updateStore(store);
+            int result = storeMapper.updateStore(seller);
 
             // 업데이트 성공 여부 확인
             if (result > 0) {
