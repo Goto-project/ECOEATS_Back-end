@@ -12,7 +12,8 @@ import com.example.dto.Member1;
 public interface MemberMapper {
 
     //로그인 처리 => 아이디를 전달받으면 해당하는 정보를 반환
-    @Select({"SELECT * FROM member1 WHERE id=#{id}"})
+    //아이디 암호 권한
+    @Select({"SELECT id, pw, role FROM member1 WHERE id=#{id}"})
     public Member1 selectMember1One(String id);
 
     //회원가입 INSERT, UPDATE, DELETE는 반환값이 int로 고정됨
