@@ -157,11 +157,13 @@ public class TokenCreate {
             
             // 토큰에서 추출하기 (key값은 토큰을 생성할 때 적용했던 값과 일치해야 함)
             String customerEmail = (String) result.getPayload().get("customerEmail");
+            String role = (String) result.getPayload().get("role");
             
             System.out.println("Parsed Claims: " + result.getPayload()); 
             //추출한 정보 반환
             Map<String, Object> map = new HashMap<>();
             map.put("customerEmail", customerEmail);
+            map.put("role", role);
             
             return map;
             // result.getPayload().forEach((key1, value1) -> log.info("key : {}, value :{}",
