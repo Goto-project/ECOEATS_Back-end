@@ -100,38 +100,42 @@ public class ReviewRestController {
     @PutMapping(value = "update.json")
     public Map<String, Object> updatePUT(@RequestBody Review obj, HttpServletRequest request) {
         Map<String, Object> map = new HashMap<>();
-        
+    
         try {
-            // 1. 검증된 userid 확인
+            // 토큰에서 이메일 확인 (JwtFilter에서 설정한 "userid" 속성 사용)
             String userid = (String) request.getAttribute("userid");
+            System.out.println("토큰의 이메일: " + userid);
             
-            if (userid == null || !userid.equals(obj.getCustomerEmail())) {
-                // 토큰의 사용자와 리뷰 작성자가 일치하지 않으면 접근 거부
+            // 2. 기존 리뷰 조회
+            Review ret = reviewRepository.findById(obj.getReviewNo()).orElse(null);
+            if (ret == null) {
+                map.put("status", 404);
+                map.put("message", "Review not found");
+                return map;
+            }
+    
+            // 3. 권한 체크 - 기존 리뷰의 작성자와 토큰의 이메일 비교
+            if (userid == null || !userid.equals(ret.getCustomerEmail().getCustomerEmail())) {
                 map.put("status", 403);
                 map.put("result", "수정 권한이 없습니다.");
                 return map;
             }
-    
-            // 2. 기존 리뷰 조회 및 수정
-            Review ret = reviewRepository.findById(obj.getReviewNo()).orElse(null);
-            if (ret != null) {
-                ret.setRating(obj.getRating());
-                ret.setContent(obj.getContent());
-                
-                // 3. 데이터베이스에 변경 사항 저장
-                reviewRepository.save(ret);
-                map.put("status", 200);
-                map.put("updatedReview", ret);
-            } else {
-                map.put("status", 404);
-                map.put("message", "Review not found");
-            }
+            
+            // 4. 리뷰 수정
+            ret.setRating(obj.getRating());
+            ret.setContent(obj.getContent());
+            
+            // 5. 저장
+            reviewRepository.save(ret);
+            map.put("status", 200);
+            map.put("updatedReview", ret);
+            
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            e.printStackTrace();
             map.put("status", -1);
             map.put("error", "오류가 발생했습니다.");
         }
-    
+        
         return map;
     }
 
