@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +28,7 @@ public class ReviewRestController {
 
     final ReviewRepository reviewRepository;
     final ReviewImageRepository reviewImageRepository;
-
+    
 
 
 
@@ -98,46 +99,53 @@ public class ReviewRestController {
     // 127.0.0.1:8080/ROOT/api/review/update.json?reviewNo=1
     // {"reviewNo": 1,"content": "수정된 리뷰 내용","rating": 4}
     @PutMapping(value = "update.json")
-    public Map<String, Object> updatePUT(@RequestBody Review obj, HttpServletRequest request) {
-        Map<String, Object> map = new HashMap<>();
-    
-        try {
-            // 토큰에서 이메일 확인 (JwtFilter에서 설정한 "userid" 속성 사용)
-            String userid = (String) request.getAttribute("userid");
-            System.out.println("토큰의 이메일: " + userid);
-            
-            // 2. 기존 리뷰 조회
-            Review ret = reviewRepository.findById(obj.getReviewNo()).orElse(null);
-            if (ret == null) {
-                map.put("status", 404);
-                map.put("message", "Review not found");
-                return map;
-            }
-    
-            // 3. 권한 체크 - 기존 리뷰의 작성자와 토큰의 이메일 비교
-            if (userid == null || !userid.equals(ret.getCustomerEmail().getCustomerEmail())) {
-                map.put("status", 403);
-                map.put("result", "수정 권한이 없습니다.");
-                return map;
-            }
-            
-            // 4. 리뷰 수정
-            ret.setRating(obj.getRating());
-            ret.setContent(obj.getContent());
-            
-            // 5. 저장
-            reviewRepository.save(ret);
-            map.put("status", 200);
-            map.put("updatedReview", ret);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            map.put("status", -1);
-            map.put("error", "오류가 발생했습니다.");
+    public Map<String, Object> updatePUT(@RequestBody Review obj, @RequestHeader(name = "token") String token, HttpServletRequest request) {
+    Map<String, Object> map = new HashMap<>();
+
+    try {
+        // 1. 토큰에서 이메일 확인 (JwtFilter에서 설정한 "userid" 속성 사용)
+        String userid = (String) request.getAttribute("userid");
+        System.out.println("토큰의 이메일: " + userid);
+
+        // 2. 토큰이 유효한지 확인 (토큰 검증 로직 필요)
+        if (userid == null) {
+            map.put("status", 401);
+            map.put("message", "로그인 정보가 없습니다.");
+            return map;
         }
-        
-        return map;
+
+        // 3. 기존 리뷰 조회
+        Review ret = reviewRepository.findById(obj.getReviewNo()).orElse(null);
+        if (ret == null) {
+            map.put("status", 404);
+            map.put("message", "Review not found");
+            return map;
+        }
+
+        // 4. 권한 체크 - 기존 리뷰의 작성자와 토큰의 이메일 비교
+        if (userid == null || !userid.equals(ret.getCustomerEmail().getCustomerEmail())) {
+            map.put("status", 403);
+            map.put("result", "수정 권한이 없습니다.");
+            return map;
+        }
+
+        // 5. 리뷰 수정
+        ret.setRating(obj.getRating());
+        ret.setContent(obj.getContent());
+
+        // 6. 저장
+        reviewRepository.save(ret);
+        map.put("status", 200);
+        map.put("updatedReview", ret);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        map.put("status", -1);
+        map.put("error", "오류가 발생했습니다.");
     }
+
+    return map;
+}
 
 
 
