@@ -1,5 +1,6 @@
 package com.example.mapper;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Result;
@@ -25,10 +26,11 @@ public interface CustomerMemberMapper {
 
     public CustomerMember selectCustomerMemberOne(String customerEmail);
 
-    // 닉네임 ,핸드폰 변경
+    // 닉네임 ,핸드폰 변경, 
     @Update({ "UPDATE customer_member SET password=#{password}, nickname=#{nickname}, phone=#{phone} WHERE customer_email=#{customerEmail}" })
-    @Results({
-        @Result(property = "customerEmail", column = "customer_email"),
-})
     public int updateCustomer(CustomerMember customerMember);
+
+    //삭제
+    @Delete({"DELETE FROM customer_member WHERE customer_email=#{customerEmail}"})
+        int deleteCustomer(String customerEmail);
 }

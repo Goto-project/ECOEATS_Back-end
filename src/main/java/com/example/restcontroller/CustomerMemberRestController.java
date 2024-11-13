@@ -21,9 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 
 
@@ -40,18 +38,58 @@ public class CustomerMemberRestController {
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
     
+    //삭제
+    @DeleteMapping(value = "/delete.do")
+    public Map<String,Object> deleteDELETE(@RequestHeader(name="Authorization") String token){
+        Map<String,Object> map = new HashMap<>();
+        String rawToken = token.replace("Bearer ", "").trim();
+        try{
+            Map<String,Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
+            String customerEamil = (String) tokenData.get("customerEmail");
+            
+            if(customerEamil == null){
+                map.put("status", 401);
+                map.put("message", "로그인된 사용자 정보가 없습니다.");
+                return map;
+            }
 
+            CustomerMember customerMember =  customerMemberMapper.selectCustomerMemberOne(customerEamil);
+
+            if(customerMember ==null){
+                map.put("status", 404);
+                map.put("message", "회원 정보를 찾을 수 없습니다.");
+                return map;
+            }
+
+            // 회원 삭제 쿼리 실행
+            int result = customerMemberMapper.deleteCustomer(customerEamil);
+
+            if (result > 0) {
+                map.put("status", 200);
+                System.out.println("회원 삭제 성공");
+            } else {
+                map.put("status", 400);
+                System.out.println("회원 삭제 실패");
+            }
+        }catch(Exception e){
+            map.put("status", -1);
+            System.err.println(e.getMessage());
+        }
+        return map;
+    }
+
+    
     //정보수정(닉네임, 핸드폰)
     @PutMapping(value = "/update.do")
     public Map<String , Object> updatePUT(@RequestBody CustomerMember obj,
-                                        @RequestHeader(name = "token")String token) {
+                                        @RequestHeader(name = "Authorization")String token) {
         Map<String,Object> map = new HashMap<>();
+        // Bearer 접두사를 제거하여 순수 토큰만 전달
+        String rawToken = token.replace("Bearer ", "").trim();
         
         try{
-            Map<String, Object> tokenData = tokenCreate.validateCustomerToken(token);
+            Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
             String customerEmail = (String) tokenData.get("customerEmail");
-            String customerNickname = (String) tokenData.get("customerNickname");
-            String customerPhone = (String) tokenData.get("customerPhone");
 
             //DB에서
             CustomerMember customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
@@ -61,12 +99,16 @@ public class CustomerMemberRestController {
             return map;
             }
 
-            // 3. 업데이트할 필드 설정 (닉네임과 핸드폰 번호만 변경 가능)
+            // 3. 업데이트할 필드 설정 (닉네임과 핸드폰 번호 비밀번호만 변경 가능)
             if (obj.getNickname() != null && !obj.getNickname().isEmpty()) {
                 customerMember.setNickname(obj.getNickname());
             }
             if (obj.getPhone() != null && !obj.getPhone().isEmpty()) {
                 customerMember.setPhone(obj.getPhone());
+            }
+            if (obj.getPassword() != null && !obj.getPassword().isEmpty()) {
+                String encodedPassword = bcpe.encode(obj.getPassword());
+                customerMember.setPassword(encodedPassword);
             }
 
             int result = customerMemberMapper.updateCustomer(customerMember);
