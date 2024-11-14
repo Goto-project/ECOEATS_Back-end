@@ -54,25 +54,46 @@ public class ReviewRestController {
 
     //리뷰작성
     // 127.0.0.1:8080/ROOT/api/review/insert.json
-    // {"storeId":{"storeId":"store1"},"customerEmail":{ "customerEmail":"id1@test.com"},"orderno":{"orderno":1},"rating:": 1,"content":"리뷰작성입니다"}
+    // *토큰 {"storeId":{"storeId":"store1"},"customerEmail":{ "customerEmail":"id1@test.com"},"orderno":{"orderno":1},"rating:": 1,"content":"리뷰작성입니다"}
     @PostMapping(value = "/insert.json")
-        public Map<String, Object> insertPOST(@RequestBody Review obj) {
-            System.out.println(obj.toString());
+public Map<String, Object> insertPOST(@RequestBody Review obj, HttpServletRequest request) {
+    Map<String, Object> map = new HashMap<>();
+    
+    try {
+        // JwtFilter에서 설정한 "customerEmail" 속성 사용
+        String customerEmail = (String) request.getAttribute("customerEmail");
+        System.out.println("토큰의 이메일: " + customerEmail);
         
-            Map<String, Object> map = new HashMap<>();
-            try {
-                reviewRepository.save(obj);
-                
-                // 상태 200 (성공)
-                map.put("status", 200);
-                
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-                map.put("status", -1);  // 오류 상태
-            }
-
+        // 토큰 유효성 검사
+        if (customerEmail == null) {
+            map.put("status", 403);
+            map.put("result", "유효하지 않은 토큰입니다.");
             return map;
         }
+        
+        // 요청된 리뷰의 작성자 이메일과 토큰의 이메일이 일치하는지 확인
+        if (!customerEmail.equals(obj.getCustomerEmail().getCustomerEmail())) {
+            map.put("status", 403);
+            map.put("result", "리뷰 작성 권한이 없습니다.");
+            return map;
+        }
+        
+        // 리뷰 저장
+        Review savedReview = reviewRepository.save(obj);
+        
+        // 성공 응답
+        map.put("status", 200);
+        map.put("result", "리뷰가 성공적으로 등록되었습니다.");
+        map.put("savedReview", savedReview);
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        map.put("status", -1);
+        map.put("error", "리뷰 등록 중 오류가 발생했습니다.");
+    }
+    
+    return map;
+}
 
 
     // 127.0.0.1:8080/ROOT/api/review/selectall.json
@@ -99,41 +120,42 @@ public class ReviewRestController {
     // 127.0.0.1:8080/ROOT/api/review/update.json?reviewNo=1
     // {"reviewNo": 1,"content": "수정된 리뷰 내용","rating": 4}
     @PutMapping(value = "update.json")
-    public Map<String, Object> updatePUT(@RequestBody Review obj, @RequestHeader(name = "token") String token, HttpServletRequest request) {
+public Map<String, Object> updatePUT(@RequestBody Review obj, HttpServletRequest request) {
     Map<String, Object> map = new HashMap<>();
-
+    
     try {
-        // 1. 토큰에서 이메일 확인 (JwtFilter에서 설정한 "userid" 속성 사용)
-        String userid = (String) request.getAttribute("userid");
-        System.out.println("토큰의 이메일: " + userid);
+        // JwtFilter에서 설정한 "customerEmail" 속성 사용
+        String customerEmail = (String) request.getAttribute("customerEmail");
+        System.out.println("토큰의 이메일1: " + customerEmail);
 
-        // 2. 토큰이 유효한지 확인 (토큰 검증 로직 필요)
-        if (userid == null) {
-            map.put("status", 401);
-            map.put("message", "로그인 정보가 없습니다.");
+        if (customerEmail == null) {
+            map.put("status", 403);
+            map.put("result", "유효하지 않은 토큰입니다.");
             return map;
         }
 
-        // 3. 기존 리뷰 조회
+        // 기존 리뷰 조회
+        System.out.println(obj.toString());
         Review ret = reviewRepository.findById(obj.getReviewNo()).orElse(null);
+        
         if (ret == null) {
             map.put("status", 404);
             map.put("message", "Review not found");
             return map;
         }
 
-        // 4. 권한 체크 - 기존 리뷰의 작성자와 토큰의 이메일 비교
-        if (userid == null || !userid.equals(ret.getCustomerEmail().getCustomerEmail())) {
+        // 권한 체크 - 기존 리뷰의 작성자와 토큰의 이메일 비교
+        if (!customerEmail.equals(ret.getCustomerEmail().getCustomerEmail())) {
             map.put("status", 403);
             map.put("result", "수정 권한이 없습니다.");
             return map;
         }
 
-        // 5. 리뷰 수정
+        // 리뷰 수정
         ret.setRating(obj.getRating());
         ret.setContent(obj.getContent());
-
-        // 6. 저장
+        
+        // 저장
         reviewRepository.save(ret);
         map.put("status", 200);
         map.put("updatedReview", ret);
@@ -143,7 +165,7 @@ public class ReviewRestController {
         map.put("status", -1);
         map.put("error", "오류가 발생했습니다.");
     }
-
+    
     return map;
 }
 
@@ -158,18 +180,49 @@ public class ReviewRestController {
     // 127.0.0.1:8080/ROOT/api/review/delete.json
     //{"reviewNo":2}
 @DeleteMapping(value = "/delete.json")
-    public  Map<String, Object> deletePOST(@RequestBody Review obj) {
+    public  Map<String, Object> deletePOST(@RequestBody Review obj,HttpServletRequest request) {
         System.out.println(obj.toString());
-        Map<String, Object> map = new HashMap<>();
-        try {
-            reviewRepository.deleteById( obj.getReviewNo());
-            map.put("status", 200);
-        } catch (Exception e) {
-            map.put("status", -1);
+    Map<String, Object> map = new HashMap<>();
+    
+    try {
+        // JwtFilter에서 설정한 "customerEmail" 속성 사용
+        String customerEmail = (String) request.getAttribute("customerEmail");
+        System.out.println("토큰의 이메일: " + customerEmail);
+
+        if (customerEmail == null) {
+            map.put("status", 403);
+            map.put("result", "유효하지 않은 토큰입니다.");
+            return map;
         }
-        
-        return map;
+
+        // 기존 리뷰 조회
+        Review ret = reviewRepository.findById(obj.getReviewNo()).orElse(null);
+        if (ret == null) {
+            map.put("status", 404);
+            map.put("message", "Review not found");
+            return map;
+        }
+
+        // 권한 체크 - 기존 리뷰의 작성자와 토큰의 이메일 비교
+        if (!customerEmail.equals(ret.getCustomerEmail().getCustomerEmail())) {
+            map.put("status", 403);
+            map.put("result", "삭제 권한이 없습니다.");
+            return map;
+        }
+
+        // 리뷰 삭제
+        reviewRepository.delete(ret);
+        map.put("status", 200);
+        map.put("message", "리뷰가 삭제되었습니다.");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        map.put("status", -1);
+        map.put("error", "오류가 발생했습니다.");
     }
+    
+    return map;
+}
 
 
 
