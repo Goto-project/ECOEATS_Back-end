@@ -30,7 +30,14 @@ public interface StoreMapper {
         })
         public Store selectStoreOne(String storeId);
 
-        @Update("UPDATE store SET store_email = #{storeEmail}, password = #{password}, store_name = #{storeName}, address = #{address}, phone = #{phone}, category = #{category}, start_pickup = #{startPickup}, end_pickup = #{endPickup} WHERE store_id = #{storeId}")
+        @Update("UPDATE store SET store_email = #{storeEmail}, store_name = #{storeName}, address = #{address}, phone = #{phone}, category = #{category}, start_pickup = #{startPickup}, end_pickup = #{endPickup} WHERE store_id = #{storeId}")
+        @Results({
+                        @Result(property = "storeId", column = "store_id"),
+                        @Result(property = "storeEmail", column = "store_email"),
+                        @Result(property = "storeName", column = "store_name"),
+                        @Result(property = "startPickup", column = "start_pickup"),
+                        @Result(property = "endPickup", column = "end_pickup")
+        })
         int updateStore(Store store);
 
         @Delete({ "DELETE FROM store WHERE store_id = #{storeId}" })
