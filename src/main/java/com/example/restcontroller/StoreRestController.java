@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.dto.Store;
+import com.example.dto.StoreImage;
 import com.example.dto.StoreToken;
-import com.example.entity.StoreImage;
+import com.example.mapper.StoreImageMapper;
 import com.example.mapper.StoreMapper;
 import com.example.mapper.TokenMapper;
+import com.example.repository.StoreTokenRepository;
 import com.example.token.TokenCreate;
 
 import jakarta.servlet.http.HttpSession;
@@ -33,12 +35,15 @@ public class StoreRestController {
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
     final StoreMapper storeMapper;
+    final StoreImageMapper storeImageMapper;
 
     // 토큰 발행 및 검증용 컴포넌트 객체 생성
     final TokenCreate tokenCreate;
 
     final TokenMapper tokenMapper;
     final HttpSession httpSession;
+
+    final StoreTokenRepository storeTokenRepository;
 
     // 회원 삭제
     // 127.0.0.1:8080/ROOT/api/seller/delete.do
@@ -159,6 +164,44 @@ public class StoreRestController {
         return map;
     }
 
+    //로그아웃
+    //토큰으로 로그인했으므로 토큰 테이블에서 데이터 삭제 => 로그아웃됨
+    // 127.0.0.1:8080/ROOT/api/seller/logout.do
+    @DeleteMapping(value = "/logout.do")
+    public Map<String, Object> logoutDELETE(@RequestHeader(name = "Authorization") String token) {
+        Map<String, Object> map = new HashMap<>();
+
+        // Bearer 접두사를 제거하여 순수 토큰만 전달
+        String rawToken = token.replace("Bearer ", "").trim();
+
+        try {
+            // 토큰 유효성 검사 및 storeId 추출
+            Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+            String storeId = (String) tokenData.get("storeId");
+            if (storeId == null) {
+                map.put("status", 401);
+                map.put("message", "로그인된 사용자 정보가 없습니다.");
+                return map;
+            }
+
+            // 회원 로그아웃 쿼리 실행
+            int result = storeTokenRepository.deleteById_StoreId(storeId);
+
+            if (result > 0) {
+                map.put("status", 200);
+                System.out.println("로그아웃 성공");
+            } else {
+                map.put("status", 400);
+                System.out.println("로그아웃 실패");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("status", -1);
+        }
+        return map;
+    }
+
     // 리액트에서 아이디와 암호를 전달해줌 => DB에 있는지 확인 => 토큰 발행
     // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸 해야
     // 함
@@ -178,7 +221,7 @@ public class StoreRestController {
                 Map<String, Object> send1 = new HashMap<>();
                 send1.put("storeId", seller.getStoreId());
                 send1.put("role", seller.getRole());
-                
+
                 // 토큰 생성 seller 아이디, 만료시간
                 Map<String, Object> map1 = tokenCreate.generateSellerToken(send1);
 
@@ -206,27 +249,36 @@ public class StoreRestController {
     // {"storeId":"a201", "storeEmail":"abc@test.com", "password":"a201",
     // "storeName":"가나다", "address":"서면", "phone":"010", "category":"도시락",
     // "defaultPickup":"15:30"}
-    @PostMapping(value = "/join.do", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public Map<String, Object> joinPOST(@RequestPart Store store,
-            @RequestPart("file") MultipartFile file) {
+    @PostMapping(value = "/join.do", consumes = { "multipart/form-data" })
+    public Map<String, Object> joinPOST(@RequestPart("store") Store store,
+            @RequestPart(value = "file") MultipartFile file) {
         System.out.println(store.toString());
+        System.out.println(file.toString());
+        
         Map<String, Object> map = new HashMap<>();
 
         try {
             // 전달받은 암호에서 암호화하여 obj에 다시 저장하기
             store.setPassword(bcpe.encode(store.getPassword()));
-
             int ret = storeMapper.insertStoreOne(store);
             map.put("status", 0);
 
             if (ret == 1) {
                 map.put("status", 200);
 
-                // StoreImage 테이블에 이미지 저장
-                // if (file != null && !file.isEmpty()) {
-                //     StoreImage storeImage = new StoreImage();
-                //     storeImage.setStoreId(store);
-                // }
+               // StoreImage 테이블에 이미지 저장
+                if (file != null && !file.isEmpty()) {
+                    StoreImage storeImage = new StoreImage();
+                    storeImage.setStoreId(store.getStoreId());
+                    storeImage.setFilename(file.getOriginalFilename());
+                    storeImage.setFiletype(file.getContentType());
+                    storeImage.setFilesize(file.getSize());
+                    storeImage.setFiledata(file.getBytes());
+                    
+                    storeImageMapper.insertStoreImage(storeImage);
+                } else {
+                    map.put("status", 400);
+                }
             }
 
         } catch (Exception e) {
