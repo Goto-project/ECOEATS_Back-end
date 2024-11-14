@@ -12,6 +12,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -30,7 +31,7 @@ public class ReviewImage {
     long filesize;
     byte[] filedata;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "reviewno", referencedColumnName = "review_no")
     @JsonProperty(access = Access.WRITE_ONLY)
     Review reviewno;
