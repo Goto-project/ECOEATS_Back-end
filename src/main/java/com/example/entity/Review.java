@@ -23,7 +23,7 @@ public class Review {
     
     @Id
     @Column(name = "review_no")
-    int revieNo;
+    int reviewNo;
 
     @ManyToOne
     @JoinColumn(name = "store_id", referencedColumnName = "store_id")

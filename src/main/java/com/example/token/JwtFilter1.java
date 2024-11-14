@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 // filter => controller, restcontroller
 // OncePerRequestFilter => doFilterInternal
 @Component
-public class JwtFilter extends OncePerRequestFilter {
+public class JwtFilter1 extends OncePerRequestFilter {
 
     // map을 json으로 변경하기 위한 객체
     ObjectMapper objectMapper = new ObjectMapper();
@@ -77,18 +77,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // 토큰 검증, 유효하지 않거나 기타 등등하면 catch로 넘어가서 처리됨
             try { // 판매자용 토큰 검증
-                // Map<String, Object> sellerClaims = tokenCreate.validateSellerToken(token1);
-                Map<String, Object> customerClaims = tokenCreate.validateCustomerToken(token1);
-                // if (sellerClaims != null) {
-                //     // 판매자 토큰이 유효하면, 요청에 판매자 정보를 담기
-                //     request.setAttribute("storeId", sellerClaims.get("storeId"));
-                //     request.setAttribute("name", sellerClaims.get("name"));
-                //     System.out.println("판매자 토큰: " + sellerClaims);
-                // }
-                if(customerClaims != null) {
+                Map<String, Object> sellerClaims = tokenCreate.validateSellerToken(token1);
+                if (sellerClaims != null) {
                     // 판매자 토큰이 유효하면, 요청에 판매자 정보를 담기
-                    request.setAttribute("customerEmail", customerClaims.get("customerEmail"));
-                    System.out.println("고객 토큰: " + customerClaims);
+                    request.setAttribute("storeId", sellerClaims.get("storeId"));
+                    request.setAttribute("role", sellerClaims.get("role"));
+                    System.out.println("판매자 토큰: " + sellerClaims);
                 } else {
                     // 일반 사용자 토큰 검증
                     String userid = tokenCreate.validate(token1);

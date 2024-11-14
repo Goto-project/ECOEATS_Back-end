@@ -25,17 +25,57 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Member1RestController {
 
-    final MemberMapper memberMapper;
+    // 토큰 발행 및 검증용 컴포먼트 객체 작성
     final TokenCreate tokenCreate;
+    
+    final MemberMapper memberMapper;
     final TokenMapper tokenMapper;
+    // 회원가입시에 암호화 방식
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
+
+
+    //리액트에서 아이디와 암호를 전달해줌 -> DB에 있는지 확인 ->  토큰 발행
+    //ex) const body = {"id:"aaa", "pw":"bbb"}
+    @PostMapping(value = "path")
+    public Map<String, Object> postMethodName(@RequestBody Member1 obj) {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            //아이디를 이용해서 정보를 꺼냄 (아이디,암호,권한)
+            Member1 obj1 = memberMapper.selectMember1One(obj.getId());
+            //앞쪽이 사용자가 입력한 내용(암호x), 뒤쪽이 DB의 암호 (암호o)
+            if(bcpe.matches(obj.getPw(), obj1.getPw())) {
+                // map1.put("phone",)
+                // map1.put("name",)
+                // tokenCreate.generateSellerToken(map1)
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            map.put("status", -1);
+        }
+        
+        return map;
+    }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //로그인 이후에(토큰이 검증되고 난 후) 회원정보 수정, 암호변경, 회원탈퇴
     @PutMapping(value = "/update.do")
     public Map<String, Object> updatePOST(@RequestBody Member1 obj){
         Map<String, Object> map = new HashMap<>();
         try{
-
+            
         } catch(Exception e){
             System.err.println(e.getMessage());
             map.put("status", -1);

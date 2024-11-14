@@ -20,8 +20,6 @@ import lombok.Data;
 @Table(name = "dailymenu")
 @Data
 public class DailyMenu {
-
-
     
     @Id
     @Column(name = "dailymenu_no")
@@ -31,7 +29,7 @@ public class DailyMenu {
     @ManyToOne
     @JoinColumn(name = "menu_no" , referencedColumnName = "menu_no")
     @JsonProperty(access = Access.WRITE_ONLY)
-    Menu menuNol;
+    Menu menuNo;
 
     int price;
 

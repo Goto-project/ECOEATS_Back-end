@@ -3,7 +3,7 @@ package com.example.entity;
 import java.time.LocalTime;
 import java.util.Date;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import org.hibernate.annotations.Immutable;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -15,18 +15,15 @@ import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Entity
+@Immutable
+@Table(name = "store_detail_view")
 @Data
-@Table(name = "store")
-public class Store {
-    
+public class StoreView {
+
     @Id
     @Column(name = "store_id")
     String storeId;
 
-    @Column(name = "store_email")
-    String storeEmail;
-
-    String password;
 
     @Column(name = "store_name")
     String storeName;
@@ -47,4 +44,5 @@ public class Store {
 
     @Transient
     String role = "SELLER";
+    
 }
