@@ -3,10 +3,11 @@ package com.example.restcontroller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.dto.CustomerMember;
+import com.example.dto.CustomerMemberDTO;
 import com.example.dto.CustomerToken;
 import com.example.mapper.CustomerMemberMapper;
 import com.example.mapper.TokenMapper;
+import com.example.repository.CustomerTokenRepository;
 import com.example.token.TokenCreate;
 
 import jakarta.servlet.http.HttpSession;
@@ -32,13 +33,38 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 public class CustomerMemberRestController {
     
     final CustomerMemberMapper customerMemberMapper;
+    final CustomerTokenRepository customerTokenRepository;
     final TokenCreate tokenCreate;
     final TokenMapper tokenMapper;
     final HttpSession httpSession;
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
-    
-    //삭제
+
+    @PostMapping(value = "/logout.do")
+    public Map<String, Object> logoutPOST(@RequestHeader(name="Authorization") String token){
+        Map<String,Object> map = new HashMap<>();
+        String rawToken = token.replace("Bearer ", "").trim();
+        try{
+            Map<String,Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
+            String customerEamil = (String) tokenData.get("customerEmail");
+
+            if(customerEamil != null){
+                customerTokenRepository.deleteByToken(rawToken);
+                map.put("status", 200);
+                map.put("message", "로그아웃 성공");
+            } else {
+                map.put("status", 401);
+                map.put("message", "유효하지 않은 사용자 정보");
+            }
+        }catch(Exception e){
+            System.err.println(e.getMessage());
+            map.put("status", -1);
+            map.put("message", "로그아웃 중 오류 발생");
+        }
+        return map;
+    }
+
+    //회원탈퇴
     @DeleteMapping(value = "/delete.do")
     public Map<String,Object> deleteDELETE(@RequestHeader(name="Authorization") String token){
         Map<String,Object> map = new HashMap<>();
@@ -53,7 +79,7 @@ public class CustomerMemberRestController {
                 return map;
             }
 
-            CustomerMember customerMember =  customerMemberMapper.selectCustomerMemberOne(customerEamil);
+            CustomerMemberDTO customerMember =  customerMemberMapper.selectCustomerMemberOne(customerEamil);
 
             if(customerMember ==null){
                 map.put("status", 404);
@@ -81,7 +107,7 @@ public class CustomerMemberRestController {
     
     //정보수정(닉네임, 핸드폰)
     @PutMapping(value = "/update.do")
-    public Map<String , Object> updatePUT(@RequestBody CustomerMember obj,
+    public Map<String , Object> updatePUT(@RequestBody CustomerMemberDTO obj,
                                         @RequestHeader(name = "Authorization")String token) {
         Map<String,Object> map = new HashMap<>();
         // Bearer 접두사를 제거하여 순수 토큰만 전달
@@ -92,7 +118,7 @@ public class CustomerMemberRestController {
             String customerEmail = (String) tokenData.get("customerEmail");
 
             //DB에서
-            CustomerMember customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
+            CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
 
             if(customerMember ==null){ map.put("status", 403);
             map.put("message", "권한이 없습니다. 유효하지 않은 사용자입니다.");
@@ -130,12 +156,12 @@ public class CustomerMemberRestController {
 
     //로그인
     @PostMapping(value = "/login.do")
-    public Map<String , Object> loginPOST(@RequestBody CustomerMember obj) {
+    public Map<String , Object> loginPOST(@RequestBody CustomerMemberDTO obj) {
         Map<String ,Object> map = new HashMap<>();
         
         try{
             //DB에 저장된 아이디를 이용해 아이디와 비밀번호 불러옴
-            CustomerMember customerMember = customerMemberMapper.selectCustomerMemberOne(obj.getCustomerEmail());
+            CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(obj.getCustomerEmail());
             System.out.println(obj);
             map.put("status", 0);
 
@@ -173,7 +199,7 @@ public class CustomerMemberRestController {
 
     //회원가입
     @PostMapping(value = "/join.do")
-    public Map<String ,Object> joinPOST(@RequestBody CustomerMember obj) {
+    public Map<String ,Object> joinPOST(@RequestBody CustomerMemberDTO obj) {
         System.out.println(obj.toString());
         Map<String, Object> map = new HashMap<>();
 

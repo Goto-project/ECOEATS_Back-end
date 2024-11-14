@@ -1,10 +1,9 @@
 package com.example.dto;
 
-import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Data
-public class CustomerMember {
+public class CustomerMemberDTO {
     
     String customerEmail;
 
@@ -14,7 +13,6 @@ public class CustomerMember {
 
     String phone;
 
-    @Transient
     String role = "CUSTOMER";
 
 }
