@@ -47,5 +47,9 @@ public interface MenuMapper {
     // 메뉴 이미지 삭제 (선택 사항)
     @Delete("DELETE FROM menu_images WHERE menu_no = #{menuNo}")
     int deleteMenuImage(int menuNo);
+
+    void updateMenuName(int menuNo, String name);
+
+    void updateMenuPrice(int menuNo, Integer price);
 }
 

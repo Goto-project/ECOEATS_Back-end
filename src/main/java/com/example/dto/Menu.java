@@ -13,7 +13,9 @@ public class Menu {
     private String storeId;
 
     private String name;
-    private int price;
+
+    // price를 Integer로 변경하여 null 값을 처리할 수 있게 함
+    private Integer price;
 
     // 수정된 setMenuNo 메서드
     public void setMenuNo(int menuNo) {

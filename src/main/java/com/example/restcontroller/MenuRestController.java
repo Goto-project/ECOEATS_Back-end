@@ -126,18 +126,29 @@ public class MenuRestController {
 
     @PutMapping("/update/{menuNo}")
     public Map<String, Object> updateMenu(@PathVariable("menuNo") int menuNo,
-            @RequestBody Menu menu,  // @RequestBody를 사용하여 Menu 객체를 JSON 형식으로 받음
+            @RequestBody Menu menu,
             @RequestParam(value = "image", required = false) MultipartFile image) {
         Map<String, Object> map = new HashMap<>();
         System.out.println(menuNo);
-    
+
         try {
             // Menu 객체의 menuNo 값을 URL 경로에서 전달된 menuNo로 설정
             menu.setMenuNo(menuNo);
-    
+
+            // 메뉴 이름, 가격 수정 로직
+            if (menu.getName() != null && !menu.getName().isEmpty()) {
+                // 메뉴 이름이 전달되었을 때 수정
+                menuMapper.updateMenuName(menuNo, menu.getName());
+            }
+
+            if (menu.getPrice() != null) {
+                // 메뉴 가격이 전달되었을 때 수정
+                menuMapper.updateMenuPrice(menuNo, menu.getPrice());
+            }
+
             // 메뉴 수정 로직 호출
             int result = menuMapper.updateMenu(menu);
-    
+
             if (result > 0) {
                 // 이미지가 있다면 이미지 수정 처리
                 if (image != null && !image.isEmpty()) {
@@ -149,11 +160,11 @@ public class MenuRestController {
                     menuImage.setFilesize(image.getSize());
                     menuImage.setFiledata(image.getBytes());
                     menuImage.setRegdate(new Date());
-    
-                    // 기존 이미지 삭제 (새 이미지가 없는 경우, 기존 이미지를 삭제해야 하므로 추가)
+
+                    // 기존 이미지 삭제
                     int deleteResult = menuMapper.deleteMenuImage(menuNo);
                     if (deleteResult > 0) {
-                        // 이미지 수정 로직 호출
+                        // 새 이미지를 DB에 저장
                         int imageResult = menuMapper.updateMenuImage(menuImage);
                         if (imageResult > 0) {
                             map.put("status", 200);
@@ -186,9 +197,7 @@ public class MenuRestController {
             map.put("status", -1);
             map.put("message", "서버 오류");
         }
-    
+
         return map;
     }
-    
-
 }
