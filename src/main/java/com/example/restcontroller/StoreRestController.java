@@ -27,7 +27,6 @@ import com.example.mapper.TokenMapper;
 import com.example.repository.StoreTokenRepository;
 import com.example.token.TokenCreate;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -42,9 +41,7 @@ public class StoreRestController {
 
     // 토큰 발행 및 검증용 컴포넌트 객체 생성
     final TokenCreate tokenCreate;
-
     final TokenMapper tokenMapper;
-    final HttpSession httpSession;
 
     final StoreTokenRepository storeTokenRepository;
 
@@ -123,8 +120,8 @@ public class StoreRestController {
     }
 
     // 비밀번호 수정(현재 비밀번호 확인 후 변경 가능)
-    // 127.0.0.1:8080/ROOT/api/seller/updatePassword.do
-    @PutMapping(value = "/updatePassword")
+    // 127.0.0.1:8080/ROOT/api/seller/updatepassword.do
+    @PutMapping(value = "/updatepassword.do")
     public Map<String, Object> updatePasswordPOST(@RequestHeader(name = "Authorization") String token,
             @RequestParam String currentPwd, @RequestParam String newPwd) {
         Map<String, Object> map = new HashMap<>();
