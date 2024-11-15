@@ -91,6 +91,7 @@ public class StoreRestController {
     }
 
     // 로그인 시 비밀번호 잊었을 때 재설정(아이디, 이메일 맞으면 비밀번호 변경 가능)
+    // 127.0.0.1:8080/ROOT/api/seller/forgotpassword.do
     @PutMapping(value = "/forgotpassword.do")
     public Map<String, Object> forgotPasswordPUT(@RequestParam String storeId,
             @RequestParam String storeEmail,
@@ -120,6 +121,7 @@ public class StoreRestController {
     }
 
     // 비밀번호 수정(현재 비밀번호 확인 후 변경 가능)
+    // 127.0.0.1:8080/ROOT/api/seller/updatePassword.do
     @PutMapping(value = "/updatePassword")
     public Map<String, Object> updatePasswordPOST(@RequestHeader(name = "Authorization") String token,
             @RequestParam String currentPwd, @RequestParam String newPwd) {
