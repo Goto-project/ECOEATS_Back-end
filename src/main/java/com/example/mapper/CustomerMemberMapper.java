@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
-import com.example.dto.CustomerMember;
+import com.example.dto.CustomerMemberDTO;
 
 @Mapper
 public interface CustomerMemberMapper {
@@ -16,7 +16,7 @@ public interface CustomerMemberMapper {
     // 회원가입
     @Insert({ "INSERT INTO customer_member(customer_email, password, nickname, phone)",
             " VALUES(#{customerEmail} ,#{password} , #{nickname} , #{phone})" })
-    public int insertCustomerMemberOne(CustomerMember obj);
+    public int insertCustomerMemberOne(CustomerMemberDTO obj);
 
     // 로그인
     @Select({ "SELECT * FROM customer_member WHERE customer_email=#{customerEmail}" })
@@ -24,11 +24,11 @@ public interface CustomerMemberMapper {
                         @Result(property = "customerEmail", column = "customer_email"),
         })
 
-    public CustomerMember selectCustomerMemberOne(String customerEmail);
+    public CustomerMemberDTO selectCustomerMemberOne(String customerEmail);
 
     // 닉네임 ,핸드폰 변경, 
     @Update({ "UPDATE customer_member SET password=#{password}, nickname=#{nickname}, phone=#{phone} WHERE customer_email=#{customerEmail}" })
-    public int updateCustomer(CustomerMember customerMember);
+    public int updateCustomer(CustomerMemberDTO customerMember);
 
     //삭제
     @Delete({"DELETE FROM customer_member WHERE customer_email=#{customerEmail}"})

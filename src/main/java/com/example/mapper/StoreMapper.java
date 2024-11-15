@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import com.example.dto.Store;
 
@@ -29,23 +30,16 @@ public interface StoreMapper {
         })
         public Store selectStoreOne(String storeId);
 
-        @Insert({
-                        "<script>",
-                        "INSERT INTO store(store_id, store_email, password, store_name, address, phone, category, start_pickup, end_pickup) ",
-                        "VALUES(#{storeId}, #{storeEmail}, #{password}, #{storeName}, #{address}, #{phone}, #{category}, #{startPickup}, #{endPickup}) ",
-                        "ON DUPLICATE KEY UPDATE ",
-                        "<if test='storeEmail != null'>store_email = #{storeEmail},</if>",
-                        "<if test='password != null'>password = #{password},</if>",
-                        "<if test='storeName != null'>store_name = #{storeName},</if>",
-                        "<if test='address != null'>address = #{address},</if>",
-                        "<if test='phone != null'>phone = #{phone},</if>",
-                        "<if test='category != null'>category = #{category},</if>",
-                        "<if test='startPickup != null'>start_pickup = #{startPickup},</if>",
-                        "<if test='endPickup != null'>end_pickup = #{endPickup}</if>",
-                        "</script>"
+        @Update("UPDATE store SET store_email = #{storeEmail}, store_name = #{storeName}, address = #{address}, phone = #{phone}, category = #{category}, start_pickup = #{startPickup}, end_pickup = #{endPickup} WHERE store_id = #{storeId}")
+        @Results({
+                        @Result(property = "storeId", column = "store_id"),
+                        @Result(property = "storeEmail", column = "store_email"),
+                        @Result(property = "storeName", column = "store_name"),
+                        @Result(property = "startPickup", column = "start_pickup"),
+                        @Result(property = "endPickup", column = "end_pickup")
         })
         int updateStore(Store store);
 
-        @Delete({"DELETE FROM store WHERE store_id = #{storeId}"})
+        @Delete({ "DELETE FROM store WHERE store_id = #{storeId}" })
         int deleteStore(String storeId);
 }
