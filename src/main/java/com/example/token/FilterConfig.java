@@ -34,7 +34,7 @@ public class FilterConfig {
 
         //여기가 필터를 통과시킬 URL 설정 부분
         // 전체 한 번에 필터 설정하려면 /api/member1/* (지금은 로그인, 회원가입은 빼야해서 *쓰면 안됨)
-        filterReg.addUrlPatterns("/api/seller/update.do", "/api/seller/delete.do");
+        filterReg.addUrlPatterns("/api/seller/update.do", "/api/seller/delete.do", "/api/menu/add.do");
 
         return filterReg;
     }

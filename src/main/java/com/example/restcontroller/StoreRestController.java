@@ -4,10 +4,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -166,8 +166,8 @@ public class StoreRestController {
         return map;
     }
 
-    //로그아웃
-    //토큰으로 로그인했으므로 토큰 테이블에서 데이터 삭제 => 로그아웃됨
+    // 로그아웃
+    // 토큰으로 로그인했으므로 토큰 테이블에서 데이터 삭제 => 로그아웃됨
     // 127.0.0.1:8080/ROOT/api/seller/logout.do
     @DeleteMapping(value = "/logout.do")
     public Map<String, Object> logoutDELETE(@RequestHeader(name = "Authorization") String token) {
@@ -256,7 +256,7 @@ public class StoreRestController {
             @RequestPart(value = "file") MultipartFile file) {
         System.out.println(store.toString());
         System.out.println(file.toString());
-        
+
         Map<String, Object> map = new HashMap<>();
 
         try {
@@ -268,7 +268,7 @@ public class StoreRestController {
             if (ret == 1) {
                 map.put("status", 200);
 
-               // StoreImage 테이블에 이미지 저장
+                // StoreImage 테이블에 이미지 저장
                 if (file != null && !file.isEmpty()) {
                     StoreImage storeImage = new StoreImage();
                     storeImage.setStoreId(store.getStoreId());
@@ -276,7 +276,7 @@ public class StoreRestController {
                     storeImage.setFiletype(file.getContentType());
                     storeImage.setFilesize(file.getSize());
                     storeImage.setFiledata(file.getBytes());
-                    
+
                     storeImageMapper.insertStoreImage(storeImage);
                 } else {
                     map.put("status", 400);
