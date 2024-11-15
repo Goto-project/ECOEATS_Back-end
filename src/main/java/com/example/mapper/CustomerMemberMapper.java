@@ -27,7 +27,7 @@ public interface CustomerMemberMapper {
     public CustomerMemberDTO selectCustomerMemberOne(String customerEmail);
 
     // 닉네임 ,핸드폰 변경, 
-    @Update({ "UPDATE customer_member SET password=#{password}, nickname=#{nickname}, phone=#{phone} WHERE customer_email=#{customerEmail}" })
+    @Update({ "UPDATE customer_member SET nickname=#{nickname}, phone=#{phone} WHERE customer_email=#{customerEmail}" })
     public int updateCustomer(CustomerMemberDTO customerMember);
 
     //삭제

@@ -1,5 +1,6 @@
 package com.example.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -23,6 +24,9 @@ public class Store {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime endPickup;
     
+    BigDecimal latitude;  // 위도
+    BigDecimal longitude; // 경도
+
     @Transient
     String role = "SELLER";
 }
