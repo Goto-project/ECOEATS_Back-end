@@ -40,6 +40,10 @@ public class CustomerMemberRestController {
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
 
+
+
+    //로그아웃
+    //127.0.0.1:8080/ROOT/api/customer/logout.do
     @PostMapping(value = "/logout.do")
     public Map<String, Object> logoutPOST(@RequestHeader(name="Authorization") String token){
         Map<String,Object> map = new HashMap<>();
@@ -132,10 +136,10 @@ public class CustomerMemberRestController {
             if (obj.getPhone() != null && !obj.getPhone().isEmpty()) {
                 customerMember.setPhone(obj.getPhone());
             }
-            if (obj.getPassword() != null && !obj.getPassword().isEmpty()) {
-                String encodedPassword = bcpe.encode(obj.getPassword());
-                customerMember.setPassword(encodedPassword);
-            }
+            // if (obj.getPassword() != null && !obj.getPassword().isEmpty()) {
+            //     String encodedPassword = bcpe.encode(obj.getPassword());
+            //     customerMember.setPassword(encodedPassword);
+            // }
 
             int result = customerMemberMapper.updateCustomer(customerMember);
             // 업데이트 결과 확인
@@ -153,6 +157,7 @@ public class CustomerMemberRestController {
         return map;
     }
 
+    
 
     //로그인
     @PostMapping(value = "/login.do")
