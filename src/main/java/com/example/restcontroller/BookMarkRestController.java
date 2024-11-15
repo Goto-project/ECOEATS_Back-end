@@ -1,6 +1,7 @@
 package com.example.restcontroller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,47 +29,60 @@ public class BookMarkRestController {
     //127.0.0.1:8080/ROOT/api/bookmark/insert.json
     // { " customerEmail":{"customerEmail":"id1@test.com"},"storeId":{ " storeId":"store1"}}
     @PostMapping(value = "/insert.json")
-    public Map<String, Object> insertPOST(
-            @RequestBody BookMark obj,
-            HttpServletRequest request) {
+public Map<String, Object> insertPOST(
+        @RequestBody BookMark obj,
+        HttpServletRequest request) {
+    
+    Map<String, Object> map = new HashMap<>();
+    
+    try {
+        // JwtFilter에서 설정한 "customerEmail" 속성 사용
+        String customerEmail = (String) request.getAttribute("customerEmail");
+        System.out.println("토큰의 이메일: " + customerEmail);
         
-        Map<String, Object> map = new HashMap<>();
-        
-        try {
-            // JwtFilter에서 설정한 "customerEmail" 속성 사용
-            String customerEmail = (String) request.getAttribute("customerEmail");
-            System.out.println("토큰의 이메일: " + customerEmail);
-            
-            // 토큰 유효성 검사
-            if (customerEmail == null) {
-                map.put("status", 403);
-                map.put("result", "유효하지 않은 토큰입니다.");
-                return map;
-            }
-            
-            // 요청된 북마크의 사용자 이메일과 토큰의 이메일이 일치하는지 확인
-            if (!customerEmail.equals(obj.getCustomerEmail().getCustomerEmail())) {
-                map.put("status", 403);
-                map.put("result", "북마크 추가 권한이 없습니다.");
-                return map;
-            }
-
-            // 북마크 저장
-            BookMark savedBookmark = bookMarkRepository.save(obj);
-            
-            // 성공 응답
-            map.put("status", 200);
-            map.put("result", "북마크가 성공적으로 추가되었습니다.");
-            map.put("savedBookmark", savedBookmark);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            map.put("status", -1);
-            map.put("error", "북마크 추가 중 오류가 발생했습니다.");
+        // 토큰 유효성 검사
+        if (customerEmail == null) {
+            map.put("status", 403);
+            map.put("result", "유효하지 않은 토큰입니다.");
+            return map;
         }
         
-        return map;
+        // 요청된 북마크의 사용자 이메일과 토큰의 이메일이 일치하는지 확인
+        if (!customerEmail.equals(obj.getCustomerEmail().getCustomerEmail())) {
+            map.put("status", 403);
+            map.put("result", "북마크 추가 권한이 없습니다.");
+            return map;
+        }
+
+        // 이미 북마크가 존재하는지 확인
+        List<BookMark> existingBookmarks = bookMarkRepository
+            .findByCustomerEmail_CustomerEmailAndStoreId_StoreId(
+                obj.getCustomerEmail().getCustomerEmail(), 
+                obj.getStoreId().getStoreId()
+            );
+
+        if (!existingBookmarks.isEmpty()) {
+            map.put("status", 400);
+            map.put("result", "이미 북마크에 추가된 매장입니다.");
+            return map;
+        }
+        
+        // 북마크 저장
+        BookMark savedBookmark = bookMarkRepository.save(obj);
+        
+        // 성공 응답
+        map.put("status", 200);
+        map.put("result", "북마크가 성공적으로 추가되었습니다.");
+        map.put("savedBookmark", savedBookmark);
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        map.put("status", -1);
+        map.put("error", "북마크 추가 중 오류가 발생했습니다.");
     }
+    
+    return map;
+}
     
     // 즐겨찾기 삭제 (DeleteMapping)
     // 127.0.0.1:8080/ROOT/api/bookmark/delete.json
