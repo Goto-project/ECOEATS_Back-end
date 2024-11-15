@@ -31,7 +31,7 @@ public class ReviewImage {
     long filesize;
     byte[] filedata;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "reviewno", referencedColumnName = "review_no")
     @JsonProperty(access = Access.WRITE_ONLY)
     Review reviewno;
