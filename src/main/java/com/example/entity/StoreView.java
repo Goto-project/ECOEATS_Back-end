@@ -1,13 +1,11 @@
 package com.example.entity;
 
 import java.time.LocalTime;
-import java.util.Date;
 
 import org.hibernate.annotations.Immutable;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -16,17 +14,14 @@ import lombok.Data;
 
 @Entity
 @Immutable
-@Table(name = "store_detail_view")
+@Table(name = "storedetailview")
 @Data
 public class StoreView {
 
     @Id
-    @Column(name = "store_id")
-    String storeId;
+    String storeid;
 
-
-    @Column(name = "store_name")
-    String storeName;
+    String storename;
 
     String address;
 
@@ -35,14 +30,15 @@ public class StoreView {
     String category;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    @Column(name = "start_pickup")
-    LocalTime startPickup;
+    LocalTime startpickup;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    @Column(name = "end_pickup")
-    LocalTime endPickup;
+    LocalTime endpickup;
 
-    @Transient
-    String role = "SELLER";
-    
+    Double avgrating; // 평균 평점
+
+    int bookmarkcount; // 북마크 수
+
+    @Transient// java에서 사용하기 위한 변수
+    String imageurl;
 }
