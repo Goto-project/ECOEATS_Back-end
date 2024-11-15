@@ -13,27 +13,20 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "order1")
 @Data
-public class Order {
+@Table(name = "customertoken")
+public class CustomerToken {
     
     @Id
-    int orderno;
+    int no;
 
     @ManyToOne
-    @JoinColumn(name = "store_id", referencedColumnName = "store_id")
-    Store storeId;
+    @JoinColumn(name = "id" , referencedColumnName = "customer_email")
+    CustomerMember id;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_email" , referencedColumnName = "customer_email")
-    CustomerMember customerEmail;
+    String token;
 
-    @ManyToOne
-    @JoinColumn(name = "dailymenu_no" , referencedColumnName = "dailymenu_no")
-    DailyMenu dailymenuNo;
-
-    int qty;
-    
+    Date expiretime;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @CreationTimestamp
