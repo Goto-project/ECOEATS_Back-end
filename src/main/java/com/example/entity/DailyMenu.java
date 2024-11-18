@@ -1,10 +1,12 @@
 package com.example.entity;
 
+import java.time.LocalTime;
 import java.util.Date;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
@@ -34,10 +36,12 @@ public class DailyMenu {
     int price;
 
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    @CreationTimestamp
-    @Column(name = "pickup_time")
-    private Date pickupTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    private LocalTime startpickup;
+
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    LocalTime endpickup;
 
     
     int qty;

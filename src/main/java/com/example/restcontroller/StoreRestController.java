@@ -359,12 +359,18 @@ public class StoreRestController {
     @PostMapping(value = "/join.do", consumes = { "multipart/form-data" })
     public Map<String, Object> joinPOST(@RequestPart("store") Store store,
             @RequestPart(value = "file") MultipartFile file) {
-        System.out.println(store.toString());
-        System.out.println(file.toString());
 
         Map<String, Object> map = new HashMap<>();
 
         try {
+
+            // 아이디 중복 체크
+            int idExists = storeMapper.checkStoreIdExists(store.getStoreId());
+            if (idExists > 0) {
+                map.put("status", 409); // HTTP 409 Conflict
+                map.put("message", "이미 존재하는 아이디입니다.");
+                return map;
+            }
             // 전달받은 암호에서 암호화하여 obj에 다시 저장하기
             store.setPassword(bcpe.encode(store.getPassword()));
             int ret = storeMapper.insertStoreOne(store);

@@ -8,4 +8,5 @@ import com.example.entity.StoreView;
 @Repository
 public interface StoreViewRepository extends JpaRepository<StoreView, String>{
     
+    //별점순 조회
 }
