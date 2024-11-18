@@ -1,6 +1,7 @@
 package com.example.entity;
 
 import java.time.LocalTime;
+import java.util.Date;
 
 import org.hibernate.annotations.Immutable;
 
@@ -12,21 +13,15 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Immutable
-@Table(name = "storedetailview")
 @Data
-public class StoreView {
-
+@Immutable
+@Table(name = "orderdetailview")
+public class OrderView {
+    
     @Id
-    String storeid;
+    int orderno;
 
-    String storename;
-
-    String address;
-
-    String phone;
-
-    String category;
+    Date orderdate;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime startpickup;
@@ -34,9 +29,17 @@ public class StoreView {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime endpickup;
 
-    Double avgrating; // 평균 평점
+    String storename;
 
-    int bookmarkcount; // 북마크 수
+    String customernickname;
 
-    byte[] filedata;
+    String menuname;
+
+    int quantity;
+
+    int menuprice;
+
+    String paymentmethod;
+
+    int totalprice;
 }
