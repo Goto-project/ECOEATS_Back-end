@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Entity
@@ -38,5 +39,8 @@ public class StoreView {
 
     int bookmarkcount; // 북마크 수
 
-    byte[] filedata;
+    int storeimageno;
+
+    @Transient
+    String imageurl="/ROOT/store/image?no=";
 }
