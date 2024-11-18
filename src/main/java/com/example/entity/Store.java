@@ -51,4 +51,7 @@ public class Store {
 
     @Transient
     String role = "SELLER";
+
+    @Transient
+    String imageurl = "/ROOT/SELLER";
 }

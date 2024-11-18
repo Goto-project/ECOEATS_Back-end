@@ -22,12 +22,15 @@ public interface MenuMapper {
                         @Result(property = "storeId", column = "store_id"),
                         @Result(property = "name", column = "name"),
                         @Result(property = "price", column = "price"),
-                        @Result(property = "menuImage", column = "menu_no", many = @Many(select = "selectMenuImageByMenuNo"))
+                        @Result(property = "menuImage", column = "menu_no", many = @Many(select = "selectMenuImageByMenuNo")) // 메뉴
+                                                                                                                              // 이미지
+                                                                                                                              // 조회
         })
         List<Menu> selectMenuListWithImages(String storeId);
 
+        // 메뉴 이미지 조회
         @Select("SELECT menu_no, filename, filetype, filesize, regdate FROM menuimage WHERE menu_no = #{menuNo}")
-        MenuImage selectMenuImageByMenuNo(int menuNo);       
+        List<MenuImage> selectMenuImageByMenuNo(int menuNo); // menuNo로 메뉴 이미지 조회
 
         // 메뉴 수정
         @Update("UPDATE menu SET store_id = #{storeId}, name = #{name}, price = #{price} WHERE menu_no = #{menuNo}")
@@ -41,7 +44,7 @@ public interface MenuMapper {
         @Delete("DELETE FROM menu WHERE menu_no = #{menuNo}")
         int deleteMenu(int menuNo);
 
-        // 메뉴 이미지 삭제 (선택 사항)
+        // 메뉴 이미지 삭제
         @Delete("DELETE FROM menuimage WHERE menu_no = #{menuNo}")
         int deleteMenuImage(int menuNo);
 
