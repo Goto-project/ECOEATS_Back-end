@@ -4,10 +4,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.dto.KakaoSearchDTO;
@@ -15,6 +11,8 @@ import com.example.dto.KakaoSearchDTO;
 
 public class KakaoSearchRestController {
 
+
+    // POSTMAN: https://dapi.kakao.com/v2/local/search/keyword.json?query=부산IT국비지원직업전문학교 
     public KakaoSearchDTO getKakaoSearch(String searchKeyword) {
         //카카오 API키
         final String restAPIKey = "KakaoAK 37eb325ae6b4bfaebd25610dc18e6224";
