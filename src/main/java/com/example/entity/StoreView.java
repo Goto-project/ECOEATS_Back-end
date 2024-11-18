@@ -39,6 +39,5 @@ public class StoreView {
 
     int bookmarkcount; // 북마크 수
 
-    @Transient// java에서 사용하기 위한 변수
-    String imageurl;
+    byte[] filedata;
 }
