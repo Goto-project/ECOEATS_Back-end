@@ -1,6 +1,7 @@
 package com.example.restcontroller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dto.CustomerMemberDTO;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 
 
@@ -43,7 +46,8 @@ public class CustomerMemberRestController {
 
 
     //로그아웃
-    //127.0.0.1:8080/ROOT/api/customer/logout.do
+    //127.0.0.1:8080/ROOT/api/customer/logout.do+
+    
     @PostMapping(value = "/logout.do")
     public Map<String, Object> logoutPOST(@RequestHeader(name="Authorization") String token){
         Map<String,Object> map = new HashMap<>();
@@ -157,7 +161,19 @@ public class CustomerMemberRestController {
         return map;
     }
 
-    
+    // 로그인 시 비밀번호 잊었을 때 재설정(아이디, 이메일 맞으면 비밀번호 변경 가능)
+    // 127.0.0.1:8080/ROOT/api/seller/forgotpassword.do
+    @PutMapping(value = "/forgotpassword.do")
+    public Map<String, Object> forgotpasswordPUT(@RequestParam String customerEmail,
+            @RequestParam String newPwd) {
+        Map<String, Object> map = new HashMap<>();
+        
+        CustomerMemberDTO customerMemberDTO = CustomerMemberMapper.find
+        return map;
+    }
+
+    // 비밀번호 수정(현재 비밀번호 확인 후 변경 가능)
+    // 127.0.0.1:8080/ROOT/api/seller/updatepassword.do
 
     //로그인
     @PostMapping(value = "/login.do")

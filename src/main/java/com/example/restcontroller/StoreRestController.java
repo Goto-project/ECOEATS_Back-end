@@ -310,8 +310,7 @@ public class StoreRestController {
     }
 
     // 리액트에서 아이디와 암호를 전달해줌 => DB에 있는지 확인 => 토큰 발행
-    // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸 해야
-    // 함
+    // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸 해야 함
     // 127.0.0.1:8080/ROOT/api/seller/login.do
     @PostMapping(value = "/login.do")
     public Map<String, Object> loginPOST(@RequestBody Store store) {
