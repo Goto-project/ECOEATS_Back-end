@@ -1,7 +1,7 @@
 package com.example.restcontroller;
 
-import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.*;
@@ -34,12 +34,9 @@ public class MenuRestController {
             @RequestHeader(name = "Authorization") String token) {
 
         Map<String, Object> map = new HashMap<>();
-
-        // Bearer 접두사를 제거하여 순수 토큰만 전달
         String rawToken = token.replace("Bearer ", "").trim();
 
         try {
-            // 토큰 유효성 검사 및 storeId 추출
             Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
             String storeId = (String) tokenData.get("storeId");
 
@@ -49,40 +46,23 @@ public class MenuRestController {
                 return map;
             }
 
-            // 메뉴 추가 데이터에 storeId 설정
             menu.setStoreId(storeId);
-            // 메뉴 삽입하고, 삽입된 메뉴의 번호(menu_no)를 가져옵니다.
             int menuResult = menuMapper.insertMenu(menu);
 
             if (menuResult > 0) {
                 map.put("status", 200);
                 map.put("message", "메뉴 추가 성공");
 
-                // 메뉴 번호가 제대로 할당되었는지 확인
-                if (menu.getMenuNo() == 0) {
-                    map.put("status", 400);
-                    map.put("message", "메뉴 번호가 제대로 할당되지 않았습니다.");
-                    return map;
-                }
-
-                // 메뉴 번호를 메뉴 이미지에 추가
-                int menuNo = menu.getMenuNo(); // 메뉴 번호 추출
-
-                // 이미지가 있을 경우 메뉴 이미지 추가
                 if (file != null && !file.isEmpty()) {
                     MenuImage menuImage = new MenuImage();
-                    menuImage.setMenuNo(menuNo); // 방금 삽입된 메뉴의 번호 설정
+                    menuImage.setMenuNo(menu.getMenuNo());
                     menuImage.setFilename(file.getOriginalFilename());
                     menuImage.setFiletype(file.getContentType());
                     menuImage.setFilesize(file.getSize());
                     menuImage.setFiledata(file.getBytes());
 
                     int imageResult = menuImageMapper.insertMenuImage(menuImage);
-                    if (imageResult > 0) {
-                        map.put("imageStatus", "이미지 저장 성공");
-                    } else {
-                        map.put("imageStatus", "이미지 저장 실패");
-                    }
+                    map.put("imageStatus", imageResult > 0 ? "이미지 저장 성공" : "이미지 저장 실패");
                 } else {
                     map.put("imageStatus", "이미지 없음");
                 }
@@ -106,20 +86,14 @@ public class MenuRestController {
         Map<String, Object> map = new HashMap<>();
 
         try {
-            // menuNo를 전달하여 해당 메뉴 삭제
             int result = menuMapper.deleteMenu(menuNo);
+            map.put("status", result > 0 ? 200 : 400);
+            map.put("message", result > 0 ? "메뉴 삭제 성공" : "메뉴 삭제 실패");
 
-            if (result > 0) {
-                map.put("status", 200);
-                map.put("message", "메뉴 삭제 성공");
-            } else {
-                map.put("status", 400);
-                map.put("message", "메뉴 삭제 실패");
-            }
         } catch (Exception e) {
             e.printStackTrace();
             map.put("status", -1);
-            map.put("message", "서버 오류");
+            map.put("message", "서버 오류: " + e.getMessage());
         }
 
         return map;
@@ -133,12 +107,9 @@ public class MenuRestController {
             @RequestHeader(name = "Authorization") String token) {
 
         Map<String, Object> map = new HashMap<>();
-
-        // Bearer 접두사를 제거하여 순수 토큰만 전달
         String rawToken = token.replace("Bearer ", "").trim();
 
         try {
-            // 토큰 유효성 검사 및 storeId 추출
             Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
             String storeId = (String) tokenData.get("storeId");
 
@@ -148,17 +119,14 @@ public class MenuRestController {
                 return map;
             }
 
-            // 메뉴 번호를 통해 기존 메뉴를 조회
             menu.setStoreId(storeId);
             menu.setMenuNo(menuNo);
-
             int menuResult = menuMapper.updateMenu(menu);
 
             if (menuResult > 0) {
                 map.put("status", 200);
                 map.put("message", "메뉴 수정 성공");
 
-                // 이미지가 있을 경우 메뉴 이미지 수정
                 if (file != null && !file.isEmpty()) {
                     MenuImage menuImage = new MenuImage();
                     menuImage.setMenuNo(menuNo);
@@ -167,15 +135,9 @@ public class MenuRestController {
                     menuImage.setFilesize(file.getSize());
                     menuImage.setFiledata(file.getBytes());
 
-                    // 기존 이미지를 삭제하고 새 이미지를 저장하는 로직
-                    menuImageMapper.deleteMenuImageByMenuNo(menuNo); // 기존 이미지 삭제
+                    menuImageMapper.deleteMenuImageByMenuNo(menuNo);
                     int imageResult = menuImageMapper.insertMenuImage(menuImage);
-
-                    if (imageResult > 0) {
-                        map.put("imageStatus", "이미지 저장 성공");
-                    } else {
-                        map.put("imageStatus", "이미지 저장 실패");
-                    }
+                    map.put("imageStatus", imageResult > 0 ? "이미지 저장 성공" : "이미지 저장 실패");
                 } else {
                     map.put("imageStatus", "이미지 없음");
                 }
@@ -194,4 +156,33 @@ public class MenuRestController {
         return map;
     }
 
+    // 메뉴 조회
+    @GetMapping("/list")
+    public Map<String, Object> getMenuList(@RequestHeader(name = "Authorization") String token) {
+        Map<String, Object> map = new HashMap<>();
+        String rawToken = token.replace("Bearer ", "").trim();
+
+        try {
+            Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+            String storeId = (String) tokenData.get("storeId");
+
+            if (storeId == null) {
+                map.put("status", 401);
+                map.put("message", "로그인된 사용자 정보가 없습니다.");
+                return map;
+            }
+
+            List<Menu> menuList = menuMapper.selectMenuList(storeId);
+            map.put("status", !menuList.isEmpty() ? 200 : 404);
+            map.put("message", !menuList.isEmpty() ? "메뉴 조회 성공" : "메뉴가 없습니다.");
+            map.put("menuList", menuList);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("status", -1);
+            map.put("message", "서버 오류: " + e.getMessage());
+        }
+
+        return map;
+    }
 }

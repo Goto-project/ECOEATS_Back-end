@@ -1,5 +1,6 @@
 package com.example.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import lombok.Data;
@@ -14,10 +15,13 @@ public class Menu {
 
     private String name;
 
-    // price를 Integer로 변경하여 null 값을 처리할 수 있게 함
     private Integer price;
 
-    // 수정된 setMenuNo 메서드
+    @JsonIgnore // getImage 메서드를 직렬화에서 제외합니다.
+    public String getImage() {
+        throw new UnsupportedOperationException("Unimplemented method 'getImage'");
+    }
+
     public void setMenuNo(int menuNo) {
         this.menuNo = menuNo; // 메뉴 번호를 설정
     }
