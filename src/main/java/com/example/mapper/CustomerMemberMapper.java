@@ -30,7 +30,14 @@ public interface CustomerMemberMapper {
     @Update({ "UPDATE customer_member SET nickname=#{nickname}, phone=#{phone} WHERE customer_email=#{customerEmail}" })
     public int updateCustomer(CustomerMemberDTO customerMember);
 
+    @Update("UPDATE customer_member SET password = #{password} WHERE customer_email=#{customerEmail}")
+        int updatePassword(CustomerMemberDTO customerMember);
+
+    CustomerMemberDTO findCustomerMemberDTOByEmail(String customerEmail);
+
     //삭제
     @Delete({"DELETE FROM customer_member WHERE customer_email=#{customerEmail}"})
         int deleteCustomer(String customerEmail);
+
+    
 }
