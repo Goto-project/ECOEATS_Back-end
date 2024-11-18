@@ -172,7 +172,8 @@ public class MenuRestController {
                 return map;
             }
 
-            List<Menu> menuList = menuMapper.selectMenuList(storeId);
+            // 메뉴와 이미지 정보 함께 조회
+            List<Menu> menuList = menuMapper.selectMenuListWithImages(storeId);
             map.put("status", !menuList.isEmpty() ? 200 : 404);
             map.put("message", !menuList.isEmpty() ? "메뉴 조회 성공" : "메뉴가 없습니다.");
             map.put("menuList", menuList);

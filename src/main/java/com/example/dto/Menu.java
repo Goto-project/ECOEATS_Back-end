@@ -1,5 +1,7 @@
 package com.example.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -16,6 +18,9 @@ public class Menu {
     private String name;
 
     private Integer price;
+
+    private List<MenuImage> menuImage; // 여러 이미지 처리
+
 
     @JsonIgnore // getImage 메서드를 직렬화에서 제외합니다.
     public String getImage() {

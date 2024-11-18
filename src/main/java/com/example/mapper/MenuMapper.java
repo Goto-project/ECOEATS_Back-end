@@ -13,22 +13,28 @@ public interface MenuMapper {
         @Options(useGeneratedKeys = true, keyProperty = "menuNo")
         int insertMenu(Menu menu);
 
-        // 메뉴 전체 조회
-        @Select("SELECT * FROM menu")
+        // 메뉴와 이미지 정보 함께 조회
+        @Select("SELECT m.menu_no, m.store_id, m.name, m.price, " +
+                        "mi.menuimage_no, mi.filename, mi.filetype, mi.filesize, mi.regdate " +
+                        "FROM menu m LEFT JOIN menuimage mi ON m.menu_no = mi.menu_no WHERE m.store_id = #{storeId}")
         @Results({
                         @Result(property = "menuNo", column = "menu_no"),
                         @Result(property = "storeId", column = "store_id"),
                         @Result(property = "name", column = "name"),
-                        @Result(property = "price", column = "price")
+                        @Result(property = "price", column = "price"),
+                        @Result(property = "menuImage", column = "menu_no", many = @Many(select = "selectMenuImageByMenuNo"))
         })
-        List<Menu> selectAllMenus();
+        List<Menu> selectMenuListWithImages(String storeId);
+
+        @Select("SELECT menu_no, filename, filetype, filesize, regdate FROM menuimage WHERE menu_no = #{menuNo}")
+        MenuImage selectMenuImageByMenuNo(int menuNo);       
 
         // 메뉴 수정
         @Update("UPDATE menu SET store_id = #{storeId}, name = #{name}, price = #{price} WHERE menu_no = #{menuNo}")
         int updateMenu(Menu menu);
 
         // 메뉴 이미지 수정
-        @Update("UPDATE menu_images SET filename = #{filename}, filetype = #{filetype}, filesize = #{filesize}, filedata = #{filedata}, regdate = #{regdate} WHERE menu_no = #{menuNo}")
+        @Update("UPDATE menuimage SET filename = #{filename}, filetype = #{filetype}, filesize = #{filesize}, filedata = #{filedata}, regdate = #{regdate} WHERE menu_no = #{menuNo}")
         int updateMenuImage(MenuImage menuImage);
 
         // 메뉴 삭제
@@ -36,18 +42,10 @@ public interface MenuMapper {
         int deleteMenu(int menuNo);
 
         // 메뉴 이미지 삭제 (선택 사항)
-        @Delete("DELETE FROM menu_images WHERE menu_no = #{menuNo}")
+        @Delete("DELETE FROM menuimage WHERE menu_no = #{menuNo}")
         int deleteMenuImage(int menuNo);
 
-        // 특정 가게의 메뉴 리스트 조회 (필요 시)
+        // 특정 가게의 메뉴 리스트 조회
         @Select("SELECT * FROM menu WHERE store_id = #{storeId}")
-        @Results({
-                        @Result(property = "menuNo", column = "menu_no"),
-                        @Result(property = "storeId", column = "store_id"),
-                        @Result(property = "name", column = "name"),
-                        @Result(property = "price", column = "price")
-        })
         List<Menu> selectMenuList(String storeId);
-
-        MenuImage selectMenuImageByMenuNo(int menuNo);
 }

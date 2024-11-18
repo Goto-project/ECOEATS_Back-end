@@ -24,7 +24,7 @@ public class Menu {
 
     @ManyToOne
     @JoinColumn(name = "store_id" , referencedColumnName ="store_id")
-     @JsonProperty(access = Access.WRITE_ONLY) //추가할때는 사용 가능 , 조회할때는 표시
+    @JsonProperty(access = Access.WRITE_ONLY) //추가할때는 사용 가능 , 조회할때는 표시
     Store storeId;
 
     String name;
