@@ -42,11 +42,11 @@ public class StoreView {
 
     Double avgrating; // 평균 평점
 
-    int bookmarkcount; // 북마크 수
+    Integer bookmarkcount; // 북마크 수
 
-    int reviewcount; // 리뷰 수
+    Integer reviewcount; // 리뷰 수
 
-    int storeimageno;
+    Integer storeimageno;
 
     @Transient
     String imageurl="/ROOT/store/image?no=";
