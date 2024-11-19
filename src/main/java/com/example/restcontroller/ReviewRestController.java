@@ -25,8 +25,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.entity.CustomerMember;
 import com.example.entity.Review;
 import com.example.entity.ReviewImage;
+import com.example.entity.Store;
 import com.example.repository.ReviewImageRepository;
 import com.example.repository.ReviewRepository;
 
@@ -40,6 +42,7 @@ public class ReviewRestController {
 
     final ReviewRepository reviewRepository;
     final ReviewImageRepository reviewImageRepository;
+    final ResourceLoader resourceLoader;
 
 
 
@@ -52,31 +55,75 @@ public class ReviewRestController {
 
 
 
-// 127.0.0.1:8080/ROOT/api/review/selectall.json
+// 127.0.0.1:8080/ROOT/api/review/selectall.json?storeId=a208
     //리뷰 전체보기
     @GetMapping(value = "/selectall.json")
-    public Map<String, Object> selectallGET() {
+    public Map<String, Object> selectallGET(@RequestParam(name = "storeId") String storeId) {
+        Map<String, Object> map = new HashMap<>();
+    try {
+        // 특정 가게의 리뷰만 가져오기
+        Store store = new Store();
+        store.setStoreId(storeId);  // storeId를 이용해 Store 객체 생성
+        List<Review> list = reviewRepository.findByStoreId(store); // 해당 store의 리뷰들만 가져옴
+        
+        // 각 리뷰에 대해 이미지 URL을 설정합니다.
+        for (Review review : list) {
+            // ReviewImageRepository의 findByReviewno 메서드를 사용하여 이미지 조회
+            ReviewImage reviewImage = reviewImageRepository.findByReviewno(review);
+            if (reviewImage != null) {
+                // 이미지 URL을 리뷰 객체에 설정
+                review.setImageurl(review.getImageurl() + reviewImage.getReviewimageNo());
+            }
+        }
+
+        map.put("status", 200);
+        map.put("list", list);
+    } catch (Exception e) {
+        System.err.println(e.getMessage());
+        map.put("status", -1);
+        map.put("message", e.getMessage());
+    }
+    return map;
+    }
+
+
+
+    @GetMapping(value = "/myreviews.json")
+    public Map<String, Object> getMyReviews(HttpServletRequest request) {
         Map<String, Object> map = new HashMap<>();
         try {
-            // 모든 리뷰를 가져옵니다.
-            List<Review> list = reviewRepository.findAll();
+            // JwtFilter에서 설정한 "customerEmail" 속성 사용
+            String customerEmail = (String) request.getAttribute("customerEmail");
+            System.out.println("토큰의 이메일: " + customerEmail);
+            
+            // 토큰 유효성 검사
+            if (customerEmail == null) {
+                map.put("status", 403);
+                map.put("result", "유효하지 않은 토큰입니다.");
+                return map;
+            }
     
-            // 각 리뷰에 대해 이미지 URL을 설정합니다.
-            for (Review review : list) {
-                // ReviewImageRepository의 findByReviewno 메서드를 사용하여 이미지 조회
+            // CustomerMember 객체 생성
+            CustomerMember customerMember = new CustomerMember();
+            customerMember.setCustomerEmail(customerEmail);
+    
+            // 해당 사용자가 작성한 리뷰 리스트 조회
+            List<Review> reviews = reviewRepository.findByCustomerEmail(customerMember);
+    
+            // 각 리뷰에 이미지 URL 추가
+            for (Review review : reviews) {
                 ReviewImage reviewImage = reviewImageRepository.findByReviewno(review);
                 if (reviewImage != null) {
-                    // 이미지 URL을 리뷰 객체에 설정
                     review.setImageurl(review.getImageurl() + reviewImage.getReviewimageNo());
-                    // System.out.println(reviewImage.toString());
                 }
             }
     
             map.put("status", 200);
-            map.put("list", list);
+            map.put("list", reviews);
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            e.printStackTrace();
             map.put("status", -1);
+            map.put("error", "리뷰 조회 중 오류가 발생했습니다.");
         }
         return map;
     }
@@ -317,6 +364,7 @@ public class ReviewRestController {
 
 // http://127.0.0.1:8080/ROOT/image?no=3
     //<img th:src="/ROOT/seller/image?no=1" />
+    //이미지 url 
     @GetMapping(value = "/image")
     public ResponseEntity<byte[]> imagePreview(@RequestParam(name = "no") int no) throws IOException {
         ReviewImage obj = reviewImageRepository.findById(no).orElse(null);
@@ -331,9 +379,9 @@ public class ReviewRestController {
         }
         
         // DB에 이미지가 없는 경우 기본 이미지 반환
-        // InputStream in = resourceLoader.getResource("classpath:/static/img/default.png").getInputStream();
-        // headers.setContentType(MediaType.IMAGE_PNG);
-        // response = new ResponseEntity<>(in.readAllBytes(), headers, HttpStatus.OK);
+        InputStream in = resourceLoader.getResource("classpath:/static/img/default.png").getInputStream();
+        headers.setContentType(MediaType.IMAGE_PNG);
+        response = new ResponseEntity<>(in.readAllBytes(), headers, HttpStatus.OK);
         return response;
     }
 
