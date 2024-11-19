@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import lombok.Data;
 
 @Data
-public class Menu {
+public class MenuDTO {
 
     private int menuNo;
 
@@ -19,7 +19,7 @@ public class Menu {
 
     private Integer price;
 
-    private List<MenuImage> menuImage; // 여러 이미지 처리
+    private List<MenuImageDTO> menuImage; // 여러 이미지 처리
 
 
     @JsonIgnore // getImage 메서드를 직렬화에서 제외합니다.

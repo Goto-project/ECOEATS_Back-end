@@ -7,8 +7,10 @@ import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.dto.Menu;
-import com.example.dto.MenuImage;
+import com.example.dto.MenuDTO;
+import com.example.dto.MenuImageDTO;
+import com.example.entity.Menu;
+import com.example.entity.MenuImage;
 import com.example.mapper.MenuImageMapper;
 import com.example.mapper.MenuMapper;
 import com.example.repository.MenuImageRepository;
@@ -32,9 +34,14 @@ public class MenuRestController {
     final MenuRepository menuRepository;
     final MenuImageRepository menuImageRepository;
 
+
+    
+
+    //======가게 전체 메뉴 관리========
+
     // 메뉴 추가
     @PostMapping(value = "/add.do", consumes = { "multipart/form-data" })
-    public Map<String, Object> addMenu(@RequestPart("menu") Menu menu,
+    public Map<String, Object> addMenu(@RequestPart("menu") MenuDTO menu,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestHeader(name = "Authorization") String token) {
 
@@ -59,7 +66,7 @@ public class MenuRestController {
                 map.put("message", "메뉴 추가 성공");
 
                 if (file != null && !file.isEmpty()) {
-                    MenuImage menuImage = new MenuImage();
+                    MenuImageDTO menuImage = new MenuImageDTO();
                     menuImage.setMenuNo(menu.getMenuNo());
                     menuImage.setFilename(file.getOriginalFilename());
                     menuImage.setFiletype(file.getContentType());
@@ -107,7 +114,7 @@ public class MenuRestController {
     // 메뉴 수정
     @PutMapping(value = "/update/{menuNo}", consumes = { "multipart/form-data" })
     public Map<String, Object> updateMenu(@PathVariable("menuNo") int menuNo,
-            @RequestPart("menu") Menu menu,
+            @RequestPart("menu") MenuDTO menu,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestHeader(name = "Authorization") String token) {
 
@@ -133,7 +140,7 @@ public class MenuRestController {
                 map.put("message", "메뉴 수정 성공");
 
                 if (file != null && !file.isEmpty()) {
-                    MenuImage menuImage = new MenuImage();
+                    MenuImageDTO menuImage = new MenuImageDTO();
                     menuImage.setMenuNo(menuNo);
                     menuImage.setFilename(file.getOriginalFilename());
                     menuImage.setFiletype(file.getContentType());
@@ -184,11 +191,11 @@ public class MenuRestController {
             System.out.println("Menu List Size: " + menuList.size());
 
             // 각 메뉴에 이미지 URL 추가
-            for (com.example.entity.Menu menu : menuList) {
-                com.example.entity.MenuImage menuImage = menuImageRepository.findByMenu_menuNo(menu.getMenuNo());
+            for (Menu menu : menuList) {
+                MenuImage menuImage = menuImageRepository.findByMenu_menuNo(menu.getMenuNo());
 
                 if (menuImage != null) {
-                    menu.setImageurl("/api/menu/menuimage?no=" + menuImage.getMenuimageNo());
+                    menu.setImageurl("/ROOT/store/menuimage?no=" + menuImage.getMenuimageNo());
                 } else {
                     menu.setImageurl(menu.getImageurl() + "0");
                 }

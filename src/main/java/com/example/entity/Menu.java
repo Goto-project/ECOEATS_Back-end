@@ -33,5 +33,5 @@ public class Menu {
     int price; 
 
     @Transient
-    String imageurl="/ROOT/store/image?no=";
+    String imageurl="/ROOT/store/menuimage?no=";
 }
