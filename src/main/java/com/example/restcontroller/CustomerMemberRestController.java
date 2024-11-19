@@ -24,9 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
-
 
 
 @RestController
@@ -167,7 +164,7 @@ public class CustomerMemberRestController {
             @RequestParam String newPwd) {
         Map<String, Object> map = new HashMap<>();
         
-        CustomerMemberDTO customerMemberDTO = CustomerMemberMapper.find
+        //CustomerMemberDTO customerMemberDTO = CustomerMemberMapper.find
         return map;
     }
 
