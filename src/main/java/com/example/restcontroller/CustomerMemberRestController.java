@@ -157,19 +157,89 @@ public class CustomerMemberRestController {
         return map;
     }
 
-    // 로그인 시 비밀번호 잊었을 때 재설정(아이디, 이메일 맞으면 비밀번호 변경 가능)
-    // 127.0.0.1:8080/ROOT/api/seller/forgotpassword.do
+    // 로그인 시 비밀번호 잊었을 때 재설정(이메일 맞으면 비밀번호 변경 가능)
+    // 127.0.0.1:8080/ROOT/api/customer/forgotpassword.do
     @PutMapping(value = "/forgotpassword.do")
     public Map<String, Object> forgotpasswordPUT(@RequestParam String customerEmail,
             @RequestParam String newPwd) {
         Map<String, Object> map = new HashMap<>();
+        System.out.println(customerEmail);
         
-        //CustomerMemberDTO customerMemberDTO = CustomerMemberMapper.find
+        // 아이디와 이메일을 확인하고, 비밀번호를 업데이트
+        CustomerMemberDTO customerMemberDTO = customerMemberMapper.findCustomerMemberDTOByEmail(customerEmail);
+        if (customerMemberDTO != null) {
+            // 새 비밀번호 암호화
+            String encodedPwd = bcpe.encode(newPwd);
+            customerMemberDTO.setPassword(encodedPwd);
+            int result = customerMemberMapper.updatePassword(customerMemberDTO);
+
+            if (result > 0) {
+                map.put("status", 200);
+                map.put("message", "비밀번호가 재설정되었습니다.");
+            } else {
+                map.put("status", 400);
+                map.put("message", "비밀번호 재설정에 실패했습니다.");
+            }
+        } else {
+            map.put("status", -1);
+            map.put("message", "아이디 또는 이메일이 잘못되었습니다.");
+        }
         return map;
     }
 
     // 비밀번호 수정(현재 비밀번호 확인 후 변경 가능)
-    // 127.0.0.1:8080/ROOT/api/seller/updatepassword.do
+    // 127.0.0.1:8080/ROOT/api/customer/updatepassword.do
+    @PutMapping(value = "/updatepassword.do")
+    public Map<String, Object> updatePasswordPOST(@RequestHeader(name = "Authorization") String token,
+            @RequestParam String currentPwd, @RequestParam String newPwd) {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            // Bearer 접두사를 제거하여 순수 토큰만 전달
+            String rawToken = token.replace("Bearer ", "").trim();
+            Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
+            String customerEmail = (String) tokenData.get("customerEmail");
+            System.out.println(customerEmail);
+            if (customerEmail == null) {
+                map.put("status", 401);
+                map.put("message", "로그인된 사용자 정보가 없습니다.");
+                return map;
+            }
+
+            CustomerMemberDTO customerMemberDTO = customerMemberMapper.selectCustomerMemberOne(customerEmail);
+
+            if (customerMemberDTO != null) {
+                // 현재 비밀번호가 일치하는지 확인
+                if (bcpe.matches(currentPwd, customerMemberDTO.getPassword())) {
+                    // 새 비밀번호 암호화
+                    String encodedNewPwd = bcpe.encode(newPwd);
+                    customerMemberDTO.setPassword(encodedNewPwd);
+
+                    // 비밀번호 변경
+                    int result = customerMemberMapper.updatePassword(customerMemberDTO);
+
+                    if (result > 0) {
+                        map.put("status", 200);
+                        map.put("message", "비밀번호가 변경되었습니다.");
+                    } else {
+                        map.put("status", 400);
+                        map.put("message", "비밀번호 변경에 실패했습니다.");
+                    }
+                } else {
+                    map.put("status", 400);
+                    map.put("message", "현재 비밀번호가 올바르지 않습니다.");
+                }
+            } else {
+                map.put("status", 404);
+                map.put("message", "회원 정보를 찾을 수 없습니다.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("status", -1);
+            map.put("message", "서버 오류");
+        }
+        return map;
+    }
 
     //로그인
     @PostMapping(value = "/login.do")

@@ -1,5 +1,6 @@
 package com.example.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 
 import org.hibernate.annotations.Immutable;
@@ -25,6 +26,10 @@ public class StoreView {
 
     String address;
 
+    BigDecimal latitude;  // 위도
+    
+    BigDecimal longitude; // 경도
+
     String phone;
 
     String category;
@@ -38,6 +43,8 @@ public class StoreView {
     Double avgrating; // 평균 평점
 
     int bookmarkcount; // 북마크 수
+
+    int reviewcount; // 리뷰 수
 
     int storeimageno;
 
