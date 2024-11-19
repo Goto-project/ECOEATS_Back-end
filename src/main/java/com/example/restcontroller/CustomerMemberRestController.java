@@ -6,16 +6,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dto.CustomerMemberDTO;
 import com.example.dto.CustomerToken;
+import com.example.entity.Cart;
+import com.example.entity.CustomerMember;
 import com.example.mapper.CustomerMemberMapper;
 import com.example.mapper.TokenMapper;
+import com.example.repository.CartRepository;
+import com.example.repository.CustomerMemberRepository;
 import com.example.repository.CustomerTokenRepository;
 import com.example.token.TokenCreate;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,7 +30,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
+
+
+
+
+
 
 @RestController
 @RequestMapping(value = "/api/customer")
@@ -36,12 +48,54 @@ public class CustomerMemberRestController {
     final TokenCreate tokenCreate;
     final TokenMapper tokenMapper;
     final HttpSession httpSession;
+    final CartRepository cartRepository;
+    final CustomerMemberRepository customerMemberRepository;
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
 
-    // 로그아웃
-    // 127.0.0.1:8080/ROOT/api/customer/logout.do+
+    
 
+    //장바구니 상세보기
+    //127.0.0.1:8080/ROOT/api/customer/cart/details
+    @GetMapping(value = "/cart/details")
+    public Map<String,Object> cartDetailGET(@RequestHeader(name = "Authorization") String token) {
+        Map<String,Object> map = new HashMap<>();
+        String rawToken = token.replace("Bearer", "").trim();
+        try{
+            Map<String,Object>tokenData = tokenCreate.validateCustomerToken(rawToken);
+            String customerEmail = (String) tokenData.get("customerEmail");
+
+            if(customerEmail == null){
+                map.put("status", 401);
+                map.put("message", "로그인된 사용자 정보가 없습니다.");
+                return map;
+            }
+            List<Cart> cartDetails = cartRepository.findByCustomerEmail_CustomerEmail(customerEmail);
+
+            //데이터 출력
+            List<Map<String, Object>> result = new ArrayList<>();
+            for(Cart cart:cartDetails){
+                Map<String,Object> item = new HashMap<>();
+                item.put("no", cart.getNo());
+                item.put("menu_name", cart.getDailymenuNo().getMenuNo().getName());
+                item.put("price", cart.getDailymenuNo().getPrice());
+                item.put("qty", cart.getQty());
+                item.put("customerEmail",cart.getCustomerEmail().getCustomerEmail());
+                item.put("regdate", cart.getRegdate());
+                result.add(item);
+            }
+            map.put("status", 200);
+            map.put("data", result);
+        }catch(Exception e){
+            map.put("status", -1);
+            System.out.println(e.getMessage());
+        }
+        return map;
+    }
+    
+
+    //로그아웃
+    //127.0.0.1:8080/ROOT/api/customer/logout.do+
     @PostMapping(value = "/logout.do")
     public Map<String, Object> logoutPOST(@RequestHeader(name = "Authorization") String token) {
         Map<String, Object> map = new HashMap<>();
