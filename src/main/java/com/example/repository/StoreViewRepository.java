@@ -12,6 +12,7 @@ import com.example.entity.StoreView;
 @Repository
 public interface StoreViewRepository extends JpaRepository<StoreView, String> {
 
+    // 1km이내 가게 보기 (카테고리별, 거리순, 별점 높은 순, 리뷰 많은 순)
     @Query(value = """
             SELECT s.storeid, s.storename, s.address, s.phone, s.category,
                    s.latitude, s.longitude, s.startpickup, s.endpickup,
@@ -24,6 +25,7 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
                 -- latitude, longitude가 null이 아닌 경우만 처리
                 s.latitude IS NOT NULL AND s.longitude IS NOT NULL
                 AND ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)) <= 1000
+                AND (:category IS NULL OR s.category = :category)
             ORDER BY
                 CASE
                     WHEN :sortBy = 'distance' THEN COALESCE(ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)), 0)
@@ -32,6 +34,6 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
                     ELSE COALESCE(ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)), 0)
                 END
             """, nativeQuery = true)
-    List<StoreView> findStoresWithinRadius(BigDecimal customerLatitude, BigDecimal customerLongitude, String sortBy);
+    List<StoreView> findStoresWithinRadius(BigDecimal customerLatitude, BigDecimal customerLongitude, String category, String sortBy);
 
 }

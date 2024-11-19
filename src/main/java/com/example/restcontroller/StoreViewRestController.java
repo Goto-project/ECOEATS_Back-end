@@ -36,6 +36,7 @@ public class StoreViewRestController {
     public List<StoreView> nearbyStoresGET(
             @RequestParam BigDecimal customerLatitude,
             @RequestParam BigDecimal customerLongitude,
+            @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "distance") String sortBy) {
 
         if (customerLatitude == null || customerLongitude == null) {
@@ -48,6 +49,7 @@ public class StoreViewRestController {
 
         // 1km 이내의 가게 목록 조회
         List<StoreView> storeViews = storeViewRepository.findStoresWithinRadius(customerLatitude, customerLongitude,
+                category,
                 sortBy);
 
         // 각 가게에 이미지 URL 추가
