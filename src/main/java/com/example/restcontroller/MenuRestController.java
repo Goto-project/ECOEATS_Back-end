@@ -11,6 +11,8 @@ import com.example.dto.Menu;
 import com.example.dto.MenuImage;
 import com.example.mapper.MenuImageMapper;
 import com.example.mapper.MenuMapper;
+import com.example.repository.MenuImageRepository;
+import com.example.repository.MenuRepository;
 import com.example.token.TokenCreate;
 
 import jakarta.transaction.Transactional;
@@ -26,6 +28,9 @@ public class MenuRestController {
     final MenuMapper menuMapper;
     final MenuImageMapper menuImageMapper;
     final TokenCreate tokenCreate;
+
+    final MenuRepository menuRepository;
+    final MenuImageRepository menuImageRepository;
 
     // 메뉴 추가
     @PostMapping(value = "/add.do", consumes = { "multipart/form-data" })
@@ -157,6 +162,7 @@ public class MenuRestController {
     }
 
     // 메뉴 조회
+    // 127.0.0.1:8080/ROOT/api/menu/list
     @GetMapping("/list")
     public Map<String, Object> getMenuList(@RequestHeader(name = "Authorization") String token) {
         Map<String, Object> map = new HashMap<>();
@@ -172,10 +178,24 @@ public class MenuRestController {
                 return map;
             }
 
-            // 메뉴와 이미지 정보 함께 조회
-            List<Menu> menuList = menuMapper.selectMenuListWithImages(storeId);
-            map.put("status", !menuList.isEmpty() ? 200 : 404);
-            map.put("message", !menuList.isEmpty() ? "메뉴 조회 성공" : "메뉴가 없습니다.");
+            System.out.println("Store ID: " + storeId);
+            // 메뉴 리스트 조회
+            List<com.example.entity.Menu> menuList = menuRepository.findByStoreId_StoreId(storeId);
+            System.out.println("Menu List Size: " + menuList.size());
+
+            // 각 메뉴에 이미지 URL 추가
+            for (com.example.entity.Menu menu : menuList) {
+                com.example.entity.MenuImage menuImage = menuImageRepository.findByMenu_menuNo(menu.getMenuNo());
+
+                if (menuImage != null) {
+                    menu.setImageurl("/api/menu/menuimage?no=" + menuImage.getMenuimageNo());
+                } else {
+                    menu.setImageurl(menu.getImageurl() + "0");
+                }
+            }
+
+            // 메뉴 데이터를 응답에 추가
+            map.put("status", 200);
             map.put("menuList", menuList);
 
         } catch (Exception e) {
