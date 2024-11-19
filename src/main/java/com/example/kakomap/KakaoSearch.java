@@ -1,4 +1,4 @@
-package com.example.restcontroller;
+package com.example.kakomap;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -9,10 +9,10 @@ import org.springframework.web.client.RestTemplate;
 import com.example.dto.KakaoSearchDTO;
 
 
-public class KakaoSearchRestController {
+public class KakaoSearch{
 
 
-    // POSTMAN: https://dapi.kakao.com/v2/local/search/keyword.json?query=부산IT국비지원직업전문학교 
+    // POSTMAN: https://dapi.kakao.com/v2/local/search/keyword.json?query=부산IT국비지원직업전문학교 (주소 or 건물 or 랜드마크)
     public KakaoSearchDTO getKakaoSearch(String searchKeyword) {
         //카카오 API키
         final String restAPIKey = "KakaoAK 37eb325ae6b4bfaebd25610dc18e6224";

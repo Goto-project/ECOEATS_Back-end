@@ -12,4 +12,5 @@ import com.example.entity.BookMark;
 public interface BookMarkRepository extends JpaRepository<BookMark, Integer>{
     List<BookMark> findByBookmarkNo(int bookmarkNo);
     List<BookMark> findByCustomerEmail_CustomerEmailAndStoreId_StoreId(String customerEmail, String storeId);
+    List<BookMark> findByCustomerEmail_CustomerEmail(String customerEmail);
 }

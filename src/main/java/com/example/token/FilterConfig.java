@@ -20,7 +20,8 @@ public class FilterConfig {
         //여기가 필터를 통과시킬 URL 설정 부분
         // 전체 한 번에 필터 설정하려면 /api/member1/* (지금은 로그인, 회원가입은 빼야해서 *쓰면 안됨)
         filterReg.addUrlPatterns("/api/member1/update.do", "/api/member1/delete.do" ,"/api/customer/update.do","/api/customer/delete.do","/api/review/update.json"
-        ,"/api/review/delete.json", "/api/review/insert.json","/api/bookmark/insert.json","/api/bookmark/delete.json","/api/review/myreviews.json" );
+        ,"/api/review/delete.json", "/api/review/insert.json","/api/bookmark/insert.json","/api/bookmark/delete.json","/api/review/myreviews.json","/api/bookmark/mybookmarks.json"
+        ,"/api/bookmark/searchbookmark.json");
 
         return filterReg;
     }
