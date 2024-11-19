@@ -39,7 +39,6 @@ public class StoreController {
     @GetMapping(value = "/image")
     public ResponseEntity<byte[]> imagePreview(@RequestParam(name = "no") int no) throws IOException {
         StoreImage obj = storeImageRepository.findById(no).orElse(null);
-        System.out.println(obj.toString());
         HttpHeaders headers = new HttpHeaders();
         ResponseEntity<byte[]> response = null;
 
