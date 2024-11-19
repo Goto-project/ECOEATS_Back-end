@@ -21,11 +21,17 @@ public interface CustomerMemberMapper {
     // 로그인
     @Select({ "SELECT * FROM customer_member WHERE customer_email=#{customerEmail}" })
     @Results({
-                        @Result(property = "customerEmail", column = "customer_email"),
+                        @Result(property = "customerEmail", column = "customer_email")
         })
 
     public CustomerMemberDTO selectCustomerMemberOne(String customerEmail);
 
+    @Select({ "SELECT * FROM customer_member WHERE customer_email=#{customerEmail}" })
+    @Results({
+        @Result(property = "customerEmail", column = "customer_email")
+    })
+    CustomerMemberDTO findCustomerMemberDTOByEmail(String customerEmail);
+    
     // 닉네임 ,핸드폰 변경, 
     @Update({ "UPDATE customer_member SET nickname=#{nickname}, phone=#{phone} WHERE customer_email=#{customerEmail}" })
     public int updateCustomer(CustomerMemberDTO customerMember);
@@ -33,7 +39,7 @@ public interface CustomerMemberMapper {
     @Update("UPDATE customer_member SET password = #{password} WHERE customer_email=#{customerEmail}")
         int updatePassword(CustomerMemberDTO customerMember);
 
-    CustomerMemberDTO findCustomerMemberDTOByEmail(String customerEmail);
+    
 
     //삭제
     @Delete({"DELETE FROM customer_member WHERE customer_email=#{customerEmail}"})
