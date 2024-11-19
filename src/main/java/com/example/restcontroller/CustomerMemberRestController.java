@@ -168,7 +168,7 @@ public class CustomerMemberRestController {
             @RequestParam String newPwd) {
         Map<String, Object> map = new HashMap<>();
         
-        CustomerMemberDTO customerMemberDTO = CustomerMemberMapper.find
+        // CustomerMemberDTO customerMemberDTO = CustomerMemberMapper.find
         return map;
     }
 

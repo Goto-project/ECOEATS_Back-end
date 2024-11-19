@@ -1,10 +1,19 @@
 package com.example.restcontroller;
 
+
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +44,48 @@ public class ReviewRestController {
 
 
 
+
+
+
+
+
+
+
+
+// 127.0.0.1:8080/ROOT/api/review/selectall.json
+    //리뷰 전체보기
+    @GetMapping(value = "/selectall.json")
+    public Map<String, Object> selectallGET() {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            // 모든 리뷰를 가져옵니다.
+            List<Review> list = reviewRepository.findAll();
+    
+            // 각 리뷰에 대해 이미지 URL을 설정합니다.
+            for (Review review : list) {
+                // ReviewImageRepository의 findByReviewno 메서드를 사용하여 이미지 조회
+                ReviewImage reviewImage = reviewImageRepository.findByReviewno(review);
+                if (reviewImage != null) {
+                    // 이미지 URL을 리뷰 객체에 설정
+                    review.setImageurl(review.getImageurl() + reviewImage.getReviewimageNo());
+                    // System.out.println(reviewImage.toString());
+                }
+            }
+    
+            map.put("status", 200);
+            map.put("list", list);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            map.put("status", -1);
+        }
+        return map;
+    }
+
+
+
+
+
+
     //목록에서 상태화면으로 이동하면 1개의 게시글 표시
     // 127.0.0.1:8080/ROOT/api/review/selectlist.json?reviewNo=1
     @GetMapping(value = "/selectlist.json")
@@ -60,7 +111,7 @@ public class ReviewRestController {
             @RequestPart(value = "image", required = false) MultipartFile imageFile,
             HttpServletRequest request) {
 
-        //System.out.println(obj.toString());
+        //System.out.println(obj.());
         //System.out.println(imageFile.getOriginalFilename());
 
         Map<String, Object> map = new HashMap<>();
@@ -92,7 +143,7 @@ public class ReviewRestController {
             // 리뷰 저장
             Review savedReview = reviewRepository.save(obj);
             //System.out.println("===============");
-            //System.out.println(savedReview.toString());
+            //System.out.println(savedReview.());
             //System.out.println("aaaaa");
             
             
@@ -128,25 +179,7 @@ public class ReviewRestController {
     }
 
 
-    // 127.0.0.1:8080/ROOT/api/review/selectall.json
-    //리뷰 전체보기
-    @GetMapping(value = "/selectall.json")
-    public Map<String, Object> selectallGET() {
-        Map<String, Object> map = new HashMap<>();
-        try {
-            List<Review> list = reviewRepository.findAll();
-            System.out.println(list.toString());
-
-            map.put("status", 200);
-            map.put("list", list);
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            map.put("status", -1);
-        }
-        return map;
-
-
-    }
+    
 
     //리뷰 수정
     // 127.0.0.1:8080/ROOT/api/review/update.json?reviewNo=1
@@ -162,7 +195,7 @@ public class ReviewRestController {
             @RequestPart(value = "review") Review obj,
             @RequestPart(value = "image", required = false) MultipartFile imageFile,
             HttpServletRequest request) {
-        // System.out.println(obj.toString());
+        // System.out.println(obj.());
         Map<String, Object> map = new HashMap<>();
 
         try {
@@ -282,6 +315,27 @@ public class ReviewRestController {
         return map;
     }
 
+// http://127.0.0.1:8080/ROOT/image?no=3
+    //<img th:src="/ROOT/seller/image?no=1" />
+    @GetMapping(value = "/image")
+    public ResponseEntity<byte[]> imagePreview(@RequestParam(name = "no") int no) throws IOException {
+        ReviewImage obj = reviewImageRepository.findById(no).orElse(null);
+        HttpHeaders headers = new HttpHeaders();
+        ResponseEntity<byte[]> response = null;
+        
+        // DB에 이미지가 있는 경우
+        if (obj != null && obj.getFiledata() != null && obj.getFiledata().length > 0) {
+            headers.setContentType(MediaType.parseMediaType(obj.getFiletype()));
+            response = new ResponseEntity<>(obj.getFiledata(), headers, HttpStatus.OK);
+            return response;
+        }
+        
+        // DB에 이미지가 없는 경우 기본 이미지 반환
+        // InputStream in = resourceLoader.getResource("classpath:/static/img/default.png").getInputStream();
+        // headers.setContentType(MediaType.IMAGE_PNG);
+        // response = new ResponseEntity<>(in.readAllBytes(), headers, HttpStatus.OK);
+        return response;
+    }
 
 
     

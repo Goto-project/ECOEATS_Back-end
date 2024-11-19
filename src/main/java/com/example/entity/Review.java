@@ -52,5 +52,5 @@ public class Review {
     Date regdate;
 
     @Transient
-    String imageurl = "/ROOT/image/reviewimage?no=3";
+    String imageurl="/ROOT/review/image?no=";
 }
