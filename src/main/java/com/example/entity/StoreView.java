@@ -39,6 +39,8 @@ public class StoreView {
 
     int bookmarkcount; // 북마크 수
 
+    int reviewcount; // 리뷰 수
+
     int storeimageno;
 
     @Transient
