@@ -1,19 +1,13 @@
 package com.example.restcontroller;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,6 +30,41 @@ public class StoreViewRestController {
     final ResourceLoader resourceLoader;
     final TokenCreate tokenCreate;
 
+    // 1km이내 가게 리스트 보기
+    // 127.0.0.1:8080/ROOT/api/store/nearby
+    @GetMapping("/nearby")
+    public List<StoreView> nearbyStoresGET(
+            @RequestParam BigDecimal customerLatitude,
+            @RequestParam BigDecimal customerLongitude,
+            @RequestParam(defaultValue = "distance") String sortBy) {
+
+        if (customerLatitude == null || customerLongitude == null) {
+            throw new IllegalArgumentException("Latitude and Longitude must not be null");
+        }
+
+        if (sortBy == null || sortBy.isEmpty()) {
+            sortBy = "distance"; // 기본값 'distance'로 설정
+        }
+
+        // 1km 이내의 가게 목록 조회
+        List<StoreView> storeViews = storeViewRepository.findStoresWithinRadius(customerLatitude, customerLongitude,
+                sortBy);
+
+        // 각 가게에 이미지 URL 추가
+        for (StoreView storeView : storeViews) {
+            // storeId로 이미지 조회
+            StoreImage storeImage = storeImageRepository.findByStoreId_StoreId(storeView.getStoreid()); // findByStoreId
+                                                                                                        // 메서드를 가정
+            if (storeImage != null) {
+                storeView.setImageurl("/api/store/image?no=" + storeImage.getStoreimageNo()); // 이미지 URL 설정
+            } else {
+                storeView.setImageurl(storeView.getImageurl() + "0"); // 기본 이미지용 번호
+            }
+        }
+
+        return storeViews;
+    }
+
     // 가게 상세보기
     // 127.0.0.1:8080/ROOT/api/store/detail/a208
     @GetMapping("/detail/{storeId}")
@@ -52,11 +81,12 @@ public class StoreViewRestController {
                 return map;
             }
 
-
             // 해당 스토어의 이미지 조회
             StoreImage storeImage = storeImageRepository.findByStoreId_StoreId(storeId); // findByStoreId 메서드를 추가했다고 가정
             if (storeImage != null) {
                 storeView.setImageurl(storeView.getImageurl() + storeImage.getStoreimageNo()); // 이미지 URL 설정
+            } else {
+                storeView.setImageurl(storeView.getImageurl() + "0"); // 기본 이미지용 번호
             }
 
             // 결과 반환
