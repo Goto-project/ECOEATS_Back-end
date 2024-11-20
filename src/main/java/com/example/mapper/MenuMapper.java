@@ -28,6 +28,10 @@ public interface MenuMapper {
         })
         List<MenuDTO> selectMenuListWithImages(String storeId);
 
+        // 메뉴 번호로 메뉴 정보 조회
+        @Select("SELECT * FROM menu WHERE menu_no = #{menuNO}")
+        MenuDTO selectMenuByNo(int menuNo);
+
         // 메뉴 이미지 조회
         @Select("SELECT menu_no, filename, filetype, filesize, regdate FROM menuimage WHERE menu_no = #{menuNo}")
         List<MenuImageDTO> selectMenuImageByMenuNo(int menuNo); // menuNo로 메뉴 이미지 조회
