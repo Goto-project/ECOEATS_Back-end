@@ -5,7 +5,7 @@ import java.util.Date;
 import lombok.Data;
 
 @Data
-public class MenuImage {
+public class MenuImageDTO {
     int menuimageNo;  
 
     String filename; 

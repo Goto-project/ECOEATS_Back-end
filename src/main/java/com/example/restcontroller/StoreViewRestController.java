@@ -58,7 +58,7 @@ public class StoreViewRestController {
             StoreImage storeImage = storeImageRepository.findByStoreId_StoreId(storeView.getStoreid()); // findByStoreId
                                                                                                         // 메서드를 가정
             if (storeImage != null) {
-                storeView.setImageurl("/api/store/image?no=" + storeImage.getStoreimageNo()); // 이미지 URL 설정
+                storeView.setImageurl("/ROOT/store/image?no=" + storeImage.getStoreimageNo()); // 이미지 URL 설정
             } else {
                 storeView.setImageurl(storeView.getImageurl() + "0"); // 기본 이미지용 번호
             }
