@@ -40,9 +40,8 @@ public class CustomerMemberRestController {
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
 
     // 로그아웃
-    // 127.0.0.1:8080/ROOT/api/customer/logout.do+
-
-    @PostMapping(value = "/logout.do")
+    // 127.0.0.1:8080/ROOT/api/customer/logout.do
+    @DeleteMapping(value = "/logout.do")
     public Map<String, Object> logoutPOST(@RequestHeader(name = "Authorization") String token) {
         Map<String, Object> map = new HashMap<>();
         String rawToken = token.replace("Bearer ", "").trim();
