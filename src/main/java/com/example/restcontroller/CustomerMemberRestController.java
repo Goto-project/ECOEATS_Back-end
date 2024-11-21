@@ -53,10 +53,10 @@ public class CustomerMemberRestController {
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
 
-    
 
     //장바구니 상세보기
     //127.0.0.1:8080/ROOT/api/customer/cart/details
+
     @GetMapping(value = "/cart/details")
     public Map<String,Object> cartDetailGET(@RequestHeader(name = "Authorization") String token) {
         Map<String,Object> map = new HashMap<>();
@@ -212,10 +212,10 @@ public class CustomerMemberRestController {
             // DB에서
             CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
 
-            if (customerMember == null) {
+            if(customerMember ==null){ 
                 map.put("status", 403);
-                map.put("message", "권한이 없습니다. 유효하지 않은 사용자입니다.");
-                return map;
+            map.put("message", "권한이 없습니다. 유효하지 않은 사용자입니다.");
+            return map;
             }
 
             // 3. 업데이트할 필드 설정 (닉네임과 핸드폰 번호 비밀번호만 변경 가능)

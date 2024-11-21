@@ -42,7 +42,7 @@ public class SecurityConfig {
         // 로그아웃 페이지 설정
         http.logout((logout) -> logout
                 .logoutUrl("/logout.do")
-                .logoutSuccessUrl("/home.do")
+                .logoutSuccessUrl("/login.do")
                 .invalidateHttpSession(true));
 
         // rest용 security가 동작되지 않음
