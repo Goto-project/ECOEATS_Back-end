@@ -1,5 +1,6 @@
 package com.example.entity;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
 
@@ -47,7 +48,7 @@ public class DailyMenu {
     int qty;
 
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @CreationTimestamp
-    private Date regdate;
+    private LocalDate regdate;
 }

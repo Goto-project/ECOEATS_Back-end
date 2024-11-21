@@ -1,6 +1,12 @@
 package com.example.restcontroller;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +50,22 @@ public class MenuRestController {
     final DailyMenuRepository dailyMenuRepository;
 
     // ======당일 판매 메뉴 관리=======
+    // 127.0.0.1:8080/ROOT/api/menu/daily/list
+    @GetMapping("/daily/list")
+    public List<DailyMenu> dailyMenuListGET(@RequestParam String date) {
+        // 날짜 형식 검증 (yyyy-MM-dd 형식)
+        LocalDate parsedDate; 
+        try {
+            // 날짜를 LocalDate 로 파싱
+            parsedDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        } catch (DateTimeParseException e){
+            // 잘못된 날짜 형식이 들어오면 예외 처리
+            throw new IllegalArgumentException("잘못된 날짜 형식입니다. yyyy-MM-dd 형식으로 입력하세요");
+        }
+
+        // 날짜 형식이 맞으면 해당 날짜의 DailyMenu 목록을 조회
+        return dailyMenuRepository.findByRegdate(parsedDate);
+    }
 
     // 당일 판매 메뉴 삭제
     // 127.0.0.1:8080/ROOT/api/menu/daily/delete
