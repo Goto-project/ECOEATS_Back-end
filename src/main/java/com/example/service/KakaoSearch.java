@@ -8,7 +8,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.dto.KakaoSearchDTO;
 
-
 public class KakaoSearch {
 
     // 카카오 API 키
@@ -24,13 +23,13 @@ public class KakaoSearch {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", REST_API_KEY); // 카카오 API 키
         headers.set("Accept", "application/json");
-        
+
         HttpEntity<?> entity = new HttpEntity<>(headers);
 
         // API 호출 후 받은 데이터를 KakaoSearchDTO로 반환
         ResponseEntity<KakaoSearchDTO> response = restTemplate.exchange(
                 url, HttpMethod.GET, entity, KakaoSearchDTO.class);
-        
-        return response.getBody();  // KakaoSearchDTO 객체 반환
+
+        return response.getBody(); // KakaoSearchDTO 객체 반환
     }
 }
