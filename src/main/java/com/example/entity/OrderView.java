@@ -42,4 +42,8 @@ public class OrderView {
     String paymentmethod;
 
     int totalprice;
+
+    String customeremail;
+
+    String storeid;
 }
