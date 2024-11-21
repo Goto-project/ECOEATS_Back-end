@@ -7,5 +7,4 @@ import com.example.entity.CustomerAddress;
 
 @Repository
 public interface CustomerAddressRepository extends JpaRepository<CustomerAddress, Integer>{
-    
 }

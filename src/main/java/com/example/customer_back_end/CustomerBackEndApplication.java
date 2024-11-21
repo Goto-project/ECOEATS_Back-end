@@ -19,7 +19,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 	"com.example.controller1",
 	"com.example.security", 
 	"com.example.token", 
-	"com.example.restcontroller"})
+	"com.example.restcontroller",
+	"com.example.service"})
 
 // @mapper
 @MapperScan(basePackages = {
