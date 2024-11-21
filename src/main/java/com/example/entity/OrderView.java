@@ -29,7 +29,11 @@ public class OrderView {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime endpickup;
 
+    String storeid;
+
     String storename;
+
+    String customeremail;
 
     String customernickname;
 
