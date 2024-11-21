@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>회원가입</title>
 </head>
 <body>
     <h3>회원가입</h3>
+    <form th:action="@{/joinaction.do}" method="post">
+        <label for="adminId">관리자 ID:</label>
+        <input type="text" id="adminId" name="adminId" required><br>
 
-    <form th:action = "@{/member1/joinaction.do}" method="post">
-        <input type="text" name="id" value="a1"/>
-        <input type="text" name="pw" value="a1"/>
-        <input type="text" name="name" value="a1"/>
-        <input type="text" name="phone" value="010-0000-0001"/>
-        <input type="text" name="age" value="11"/>
-        <input type="text" name="role" value="CUSTOMER"/>
+        <label for="password">비밀번호:</label>
+        <input type="password" id="password" name="password" required><br>
+
         <button type="submit">회원가입</button>
     </form>
 </body>
