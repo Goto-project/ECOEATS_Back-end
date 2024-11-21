@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/order")
+@RequestMapping(value = "/api/orderview")
 public class OrderViewRestController {
 
 
@@ -38,22 +38,41 @@ public class OrderViewRestController {
 
         try{
             Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
+            Map<String, Object> tokenData1 = tokenCreate.validateSellerToken(rawToken);
             String customerEmail = (String) tokenData.get("customerEmail");
+            String storeId = (String) tokenData1.get("storeId");
 
-            if(customerEmail == null){
+            System.out.println(storeId);
+            if (customerEmail == null && storeId == null) {
                 map.put("status", 401);
                 map.put("message", "로그인된 사용자 정보가 없습니다.");
                 return map;
             }
 
             //모든주문내역 가져오기
-            List<OrderView> orderDetails = orderViewRepository.findAll();
+            List<OrderView> orderDetails;
+
+            // customerEmail이 유효하면 고객 기준으로 주문 내역 조회
+            if (customerEmail != null) {
+                orderDetails = orderViewRepository.findByCustomeremail(customerEmail);
+            } 
+            // storeId가 유효하면 가게 기준으로 주문 내역 조회
+            else if (storeId != null) {
+                orderDetails = orderViewRepository.findByStoreid(storeId);
+            } 
+             // 두 값 모두 없으면 빈 리스트 반환
+            else {
+            map.put("status", 404);
+            map.put("message", "주문 내역이 없습니다.");
+            return map;
+            }
 
             if (orderDetails.isEmpty()) {
                 map.put("status", 404);
                 map.put("message", "주문 내역이 없습니다.");
                 return map;
             }
+
             // 주문 내역을 날짜별로 그룹화
             Map<String, List<OrderView>> orderbyDate = orderDetails.stream()
             .collect(Collectors.groupingBy(order -> 
@@ -62,13 +81,11 @@ public class OrderViewRestController {
                     .toLocalDate()
                     .toString() // 날짜 부분만 추출 후 문자열로 변환
             ));
-
                     
-                    System.out.println(orderbyDate);
-
             //결과 데이터 
             Map<String, Object> result = new HashMap<>();
             List<Map<String,Object>> groupOrder = new ArrayList<>();
+
             for(Map.Entry<String, List<OrderView>> entry : orderbyDate.entrySet()){
                 Map<String, Object> dateMap = new HashMap<>();
                 dateMap.put("order_date", entry.getKey()); // 날짜
@@ -118,7 +135,7 @@ public class OrderViewRestController {
             }
 
             // 주문 내역 조회 (가게 이름별)
-            List<OrderView> orderDetails = orderViewRepository.findAll(); 
+            List<OrderView> orderDetails = orderViewRepository.findByCustomeremail(customerEmail); 
 
             if (orderDetails.isEmpty()) {
                 map.put("status", 404);
@@ -176,7 +193,7 @@ public class OrderViewRestController {
                 return map;
             }
 
-            List<OrderView> orderDetails = orderViewRepository.findAll();
+            List<OrderView> orderDetails = orderViewRepository.findByCustomeremail(customerEmail);
             if(orderDetails.isEmpty()){
                 map.put("status", 404);
                 map.put("message", "주문 내역이 없습니다.");
