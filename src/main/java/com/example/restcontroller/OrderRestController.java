@@ -54,7 +54,7 @@ public class OrderRestController {
             }
 
             // 주문 후 카트 삭제
-            cartRepository.delete(cart);
+            cartRepository.deleteById(cartNo);
 
             map.put("message", "주문 완료");
             map.put("order", savedOrder); // 생성된 주문 정보 포함
