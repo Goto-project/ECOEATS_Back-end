@@ -23,31 +23,34 @@ public class OrderView {
 
     Date orderdate;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    LocalTime startpickup;
+    int pay;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    LocalTime endpickup;
-
-    String storeid;
-
-    String storename;
-
-    String customeremail;
-
-    String customernickname;
-
-    String menuname;
-
-    int quantity;
-
-    int menuprice;
-
-    String paymentmethod;
+    String status;
 
     int totalprice;
 
     String customeremail;
 
     String storeid;
+
+    String storename;
+
+    String menuname;
+
+    int dailymenuprice;
+
+    int quantity;
+
+    int unitprice;
+
+    int pickup;
+
+    Date pickupdate;
+
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    LocalTime startpickup;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    LocalTime endpickup;
 }
