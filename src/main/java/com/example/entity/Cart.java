@@ -34,6 +34,8 @@ public class Cart {
     @JoinColumn(name = "customeremail" , referencedColumnName = "customer_email")
     CustomerMember customerEmail;
 
+    String status;
+
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:MM:ss.SSS")
     @CreationTimestamp
     Date regdate;
