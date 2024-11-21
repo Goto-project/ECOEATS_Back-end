@@ -21,20 +21,11 @@ public class Order {
     int orderno;
 
     @ManyToOne
-    @JoinColumn(name = "store_id", referencedColumnName = "store_id")
-    Store storeId;
+    @JoinColumn(name = "cartno", referencedColumnName = "no")
+    Cart cartno;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_email" , referencedColumnName = "customer_email")
-    CustomerMember customerEmail;
-
-    @ManyToOne
-    @JoinColumn(name = "dailymenu_no" , referencedColumnName = "dailymenu_no")
-    DailyMenu dailymenuNo;
-
-    int qty;
+    int pay;
     
-
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @CreationTimestamp
     Date regdate;
