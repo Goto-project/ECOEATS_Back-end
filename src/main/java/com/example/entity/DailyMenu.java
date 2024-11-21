@@ -35,15 +35,6 @@ public class DailyMenu {
     Menu menuNo;
 
     int price;
-
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    private LocalTime startpickup;
-
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    LocalTime endpickup;
-
     
     int qty;
 

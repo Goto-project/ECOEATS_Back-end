@@ -21,22 +21,14 @@ public class Cart {
     int no;
 
     @ManyToOne
-    @JoinColumn(name = "storeid", referencedColumnName = "store_id")
-    Store storeid;
-
-    @ManyToOne
     @JoinColumn(name = "dailymenuno", referencedColumnName = "dailymenu_no")
     DailyMenu dailymenuNo;
 
     int qty;
 
+    int price;
+
     @ManyToOne
-    @JoinColumn(name = "customeremail" , referencedColumnName = "customer_email")
-    CustomerMember customerEmail;
-
-    String status;
-
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:MM:ss.SSS")
-    @CreationTimestamp
-    Date regdate;
+    @JoinColumn(name = "orderno", referencedColumnName = "orderno")
+    Order orderno;
 }
