@@ -6,16 +6,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dto.CustomerMemberDTO;
 import com.example.dto.CustomerToken;
+import com.example.entity.Cart;
+import com.example.entity.CustomerMember;
 import com.example.mapper.CustomerMemberMapper;
 import com.example.mapper.TokenMapper;
+import com.example.repository.CartRepository;
+import com.example.repository.CustomerMemberRepository;
 import com.example.repository.CustomerTokenRepository;
 import com.example.token.TokenCreate;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,6 +31,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
+
 
 
 
@@ -34,29 +42,69 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RequestMapping(value = "/api/customer")
 @RequiredArgsConstructor
 public class CustomerMemberRestController {
-    
+
     final CustomerMemberMapper customerMemberMapper;
     final CustomerTokenRepository customerTokenRepository;
     final TokenCreate tokenCreate;
     final TokenMapper tokenMapper;
     final HttpSession httpSession;
+    final CartRepository cartRepository;
+    final CustomerMemberRepository customerMemberRepository;
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
 
+    
 
+    //장바구니 상세보기
+    //127.0.0.1:8080/ROOT/api/customer/cart/details
+    @GetMapping(value = "/cart/details")
+    public Map<String,Object> cartDetailGET(@RequestHeader(name = "Authorization") String token) {
+        Map<String,Object> map = new HashMap<>();
+        String rawToken = token.replace("Bearer", "").trim();
+        try{
+            Map<String,Object>tokenData = tokenCreate.validateCustomerToken(rawToken);
+            String customerEmail = (String) tokenData.get("customerEmail");
+
+            if(customerEmail == null){
+                map.put("status", 401);
+                map.put("message", "로그인된 사용자 정보가 없습니다.");
+                return map;
+            }
+            List<Cart> cartDetails = cartRepository.findByCustomerEmail_CustomerEmail(customerEmail);
+
+            //데이터 출력
+            List<Map<String, Object>> result = new ArrayList<>();
+            for(Cart cart:cartDetails){
+                Map<String,Object> item = new HashMap<>();
+                item.put("no", cart.getNo());
+                item.put("menu_name", cart.getDailymenuNo().getMenuNo().getName());
+                item.put("price", cart.getDailymenuNo().getPrice());
+                item.put("qty", cart.getQty());
+                item.put("customerEmail",cart.getCustomerEmail().getCustomerEmail());
+                item.put("regdate", cart.getRegdate());
+                result.add(item);
+            }
+            map.put("status", 200);
+            map.put("data", result);
+        }catch(Exception e){
+            map.put("status", -1);
+            System.out.println(e.getMessage());
+        }
+        return map;
+    }
+    
 
     //로그아웃
     //127.0.0.1:8080/ROOT/api/customer/logout.do+
-    
     @PostMapping(value = "/logout.do")
-    public Map<String, Object> logoutPOST(@RequestHeader(name="Authorization") String token){
-        Map<String,Object> map = new HashMap<>();
+    public Map<String, Object> logoutPOST(@RequestHeader(name = "Authorization") String token) {
+        Map<String, Object> map = new HashMap<>();
         String rawToken = token.replace("Bearer ", "").trim();
-        try{
-            Map<String,Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
+        try {
+            Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
             String customerEamil = (String) tokenData.get("customerEmail");
 
-            if(customerEamil != null){
+            if (customerEamil != null) {
                 customerTokenRepository.deleteByToken(rawToken);
                 map.put("status", 200);
                 map.put("message", "로그아웃 성공");
@@ -64,7 +112,7 @@ public class CustomerMemberRestController {
                 map.put("status", 401);
                 map.put("message", "유효하지 않은 사용자 정보");
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             System.err.println(e.getMessage());
             map.put("status", -1);
             map.put("message", "로그아웃 중 오류 발생");
@@ -72,24 +120,24 @@ public class CustomerMemberRestController {
         return map;
     }
 
-    //회원탈퇴
+    // 회원탈퇴
     @DeleteMapping(value = "/delete.do")
-    public Map<String,Object> deleteDELETE(@RequestHeader(name="Authorization") String token){
-        Map<String,Object> map = new HashMap<>();
+    public Map<String, Object> deleteDELETE(@RequestHeader(name = "Authorization") String token) {
+        Map<String, Object> map = new HashMap<>();
         String rawToken = token.replace("Bearer ", "").trim();
-        try{
-            Map<String,Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
+        try {
+            Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
             String customerEamil = (String) tokenData.get("customerEmail");
-            
-            if(customerEamil == null){
+
+            if (customerEamil == null) {
                 map.put("status", 401);
                 map.put("message", "로그인된 사용자 정보가 없습니다.");
                 return map;
             }
 
-            CustomerMemberDTO customerMember =  customerMemberMapper.selectCustomerMemberOne(customerEamil);
+            CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(customerEamil);
 
-            if(customerMember ==null){
+            if (customerMember == null) {
                 map.put("status", 404);
                 map.put("message", "회원 정보를 찾을 수 없습니다.");
                 return map;
@@ -105,32 +153,69 @@ public class CustomerMemberRestController {
                 map.put("status", 400);
                 System.out.println("회원 삭제 실패");
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             map.put("status", -1);
             System.err.println(e.getMessage());
         }
         return map;
     }
 
+    // 마이페이지
+    @GetMapping(value = "/mypage.do")
+    public Map<String, Object> myPage(@RequestHeader(name = "Authorization") String token) {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            // Bearer 접두사를 제거하고 토큰만 추출
+            String rawToken = token.replace("Bearer ", "").trim();
+            // 토큰 유효성 검사
+            Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
+            String customerEmail = (String) tokenData.get("customerEmail");
     
-    //정보수정(닉네임, 핸드폰)
+            if (customerEmail == null) {
+                map.put("status", 401);
+                map.put("message", "유효하지 않은 사용자입니다.");
+                return map;
+            }
+    
+            // 이메일을 기반으로 사용자 정보를 조회
+            CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
+    
+            if (customerMember != null) {
+                map.put("nickname", customerMember.getNickname());
+                map.put("phone", customerMember.getPhone());
+                map.put("status", 200);
+            } else {
+                map.put("status", 404);
+                map.put("message", "사용자 정보를 찾을 수 없습니다.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("status", -1);
+            map.put("message", "서버 오류가 발생했습니다.");
+        }
+        return map;
+    }
+    
+
+    // 정보수정(닉네임, 핸드폰)
     @PutMapping(value = "/update.do")
-    public Map<String , Object> updatePUT(@RequestBody CustomerMemberDTO obj,
-                                        @RequestHeader(name = "Authorization")String token) {
-        Map<String,Object> map = new HashMap<>();
+    public Map<String, Object> updatePUT(@RequestBody CustomerMemberDTO obj,
+            @RequestHeader(name = "Authorization") String token) {
+        Map<String, Object> map = new HashMap<>();
         // Bearer 접두사를 제거하여 순수 토큰만 전달
         String rawToken = token.replace("Bearer ", "").trim();
-        
-        try{
+
+        try {
             Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
             String customerEmail = (String) tokenData.get("customerEmail");
 
-            //DB에서
+            // DB에서
             CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
 
-            if(customerMember ==null){ map.put("status", 403);
-            map.put("message", "권한이 없습니다. 유효하지 않은 사용자입니다.");
-            return map;
+            if (customerMember == null) {
+                map.put("status", 403);
+                map.put("message", "권한이 없습니다. 유효하지 않은 사용자입니다.");
+                return map;
             }
 
             // 3. 업데이트할 필드 설정 (닉네임과 핸드폰 번호 비밀번호만 변경 가능)
@@ -141,8 +226,8 @@ public class CustomerMemberRestController {
                 customerMember.setPhone(obj.getPhone());
             }
             // if (obj.getPassword() != null && !obj.getPassword().isEmpty()) {
-            //     String encodedPassword = bcpe.encode(obj.getPassword());
-            //     customerMember.setPassword(encodedPassword);
+            // String encodedPassword = bcpe.encode(obj.getPassword());
+            // customerMember.setPassword(encodedPassword);
             // }
 
             int result = customerMemberMapper.updateCustomer(customerMember);
@@ -154,7 +239,7 @@ public class CustomerMemberRestController {
                 map.put("status", 0);
                 map.put("message", "회원 정보 업데이트에 실패하였습니다.");
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             System.err.println(e.getMessage());
             map.put("status", -1);
         }
@@ -168,7 +253,7 @@ public class CustomerMemberRestController {
             @RequestParam String newPwd) {
         Map<String, Object> map = new HashMap<>();
         System.out.println(customerEmail);
-        
+
         // 아이디와 이메일을 확인하고, 비밀번호를 업데이트
         CustomerMemberDTO customerMemberDTO = customerMemberMapper.findCustomerMemberDTOByEmail(customerEmail);
         if (customerMemberDTO != null) {
@@ -245,70 +330,68 @@ public class CustomerMemberRestController {
         return map;
     }
 
-    //로그인
+    // 로그인
     @PostMapping(value = "/login.do")
-    public Map<String , Object> loginPOST(@RequestBody CustomerMemberDTO obj) {
-        Map<String ,Object> map = new HashMap<>();
-        
-        try{
-            //DB에 저장된 아이디를 이용해 아이디와 비밀번호 불러옴
+    public Map<String, Object> loginPOST(@RequestBody CustomerMemberDTO obj) {
+        Map<String, Object> map = new HashMap<>();
+
+        try {
+            // DB에 저장된 아이디를 이용해 아이디와 비밀번호 불러옴
             CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(obj.getCustomerEmail());
             System.out.println(obj);
             map.put("status", 0);
 
-            //사용자가 입력한 암호와, DB의 암호 비교
-            if(bcpe.matches(obj.getPassword() , customerMember.getPassword())){
-                
-                //토큰 발행할 데이터
+            // 사용자가 입력한 암호와, DB의 암호 비교
+            if (bcpe.matches(obj.getPassword(), customerMember.getPassword())) {
+
+                // 토큰 발행할 데이터
                 System.out.println("Customer Email: " + customerMember.getCustomerEmail());
                 Map<String, Object> claims = new HashMap<>();
                 claims.put("customerEmail", customerMember.getCustomerEmail()); // DB에서 가져온 정보
-                claims.put("customerNickname", customerMember.getNickname());   // DB에서 가져온 닉네임
-                claims.put("customerPhone", customerMember.getPhone()); 
-                
-                System.out.println("Claims for token generation: " + claims); 
-                
-                //토큰생성 map1 (아이디, 만료시간)
+                claims.put("customerNickname", customerMember.getNickname()); // DB에서 가져온 닉네임
+                claims.put("customerPhone", customerMember.getPhone());
+
+                System.out.println("Claims for token generation: " + claims);
+
+                // 토큰생성 map1 (아이디, 만료시간)
                 Map<String, Object> map1 = tokenCreate.generateCustomerToken(claims);
 
-                //DB에 추가
+                // DB에 추가
                 CustomerToken ct = new CustomerToken();
                 ct.setId(obj.getCustomerEmail());
-                ct.setToken((String)map1.get("token") );
-                ct.setExpiretime((Date)map1.get("expiretime"));
+                ct.setToken((String) map1.get("token"));
+                ct.setExpiretime((Date) map1.get("expiretime"));
                 tokenMapper.insertCustomerToken(ct);
 
                 map.put("token", map1.get("token"));
                 map.put("status", 200);
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             System.err.println(e.getMessage());
             map.put("status", -1);
         }
         return map;
     }
 
-    //회원가입
+    // 회원가입
     @PostMapping(value = "/join.do")
-    public Map<String ,Object> joinPOST(@RequestBody CustomerMemberDTO obj) {
+    public Map<String, Object> joinPOST(@RequestBody CustomerMemberDTO obj) {
         System.out.println(obj.toString());
         Map<String, Object> map = new HashMap<>();
 
-        try{
+        try {
             obj.setPassword(bcpe.encode(obj.getPassword()));
 
             int ret = customerMemberMapper.insertCustomerMemberOne(obj);
             map.put("status", 0);
-            if(ret ==1){
+            if (ret == 1) {
                 map.put("status", 200);
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             System.err.println(e.getMessage());
             map.put("stauts", -1);
         }
         return map;
     }
 
-    
-    
 }

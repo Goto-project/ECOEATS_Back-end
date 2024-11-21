@@ -4,8 +4,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping(value = "/api/seller")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3001")
 public class StoreRestController {
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
@@ -310,7 +311,7 @@ public class StoreRestController {
     }
 
     // 리액트에서 아이디와 암호를 전달해줌 => DB에 있는지 확인 => 토큰 발행
-    // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸 해야 함
+    // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸 해야함
     // 127.0.0.1:8080/ROOT/api/seller/login.do
     @PostMapping(value = "/login.do")
     public Map<String, Object> loginPOST(@RequestBody Store store) {
