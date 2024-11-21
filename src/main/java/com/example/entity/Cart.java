@@ -21,6 +21,10 @@ public class Cart {
     int no;
 
     @ManyToOne
+    @JoinColumn(name = "storeid", referencedColumnName = "store_id")
+    Store storeid;
+
+    @ManyToOne
     @JoinColumn(name = "dailymenuno", referencedColumnName = "dailymenu_no")
     DailyMenu dailymenuNo;
 

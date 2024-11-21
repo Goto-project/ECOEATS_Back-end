@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/order")
+@RequestMapping(value = "/api/orderview")
 public class OrderViewRestController {
 
 
