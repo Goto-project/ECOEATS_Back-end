@@ -47,7 +47,5 @@ public class OrderView {
 
     int totalprice;
 
-    String customeremail;
 
-    String storeid;
 }
