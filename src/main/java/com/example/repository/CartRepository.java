@@ -12,3 +12,4 @@ public interface CartRepository  extends JpaRepository<Cart,Integer>{
     //특정 이메일의 장바구니 리스트 조회
     // List<Cart> findByCustomerEmail_CustomerEmail(String customerEmail);
 }
+
