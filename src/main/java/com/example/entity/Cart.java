@@ -32,3 +32,4 @@ public class Cart {
     @JoinColumn(name = "orderno", referencedColumnName = "orderno")
     Order orderno;
 }
+

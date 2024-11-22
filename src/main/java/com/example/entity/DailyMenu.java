@@ -1,13 +1,10 @@
 package com.example.entity;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Date;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
@@ -43,3 +40,4 @@ public class DailyMenu {
     @CreationTimestamp
     private LocalDate regdate;
 }
+
