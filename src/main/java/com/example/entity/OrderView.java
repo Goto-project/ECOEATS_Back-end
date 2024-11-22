@@ -19,7 +19,7 @@ import lombok.Data;
 public class OrderView {
     
     @Id
-    int orderno;
+    String orderno;
 
     Date orderdate;
 

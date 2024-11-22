@@ -19,7 +19,7 @@ import lombok.Data;
 public class Order {
     
     @Id
-    Long orderno;
+    String orderno;
 
     @Column(columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime regdate;
