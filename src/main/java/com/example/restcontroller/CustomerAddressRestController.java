@@ -3,14 +3,15 @@ package com.example.restcontroller;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.entity.CustomerAddress;
@@ -136,49 +137,50 @@ public class CustomerAddressRestController {
         }
         return map;
     }
-
-    // 주소 삭제 API (Delete)
-    @DeleteMapping(value = "/delete.json/{no}")
-    public Map<String, Object> deleteCustomerAddress(@PathVariable int no, HttpServletRequest request) {
-        Map<String, Object> map = new HashMap<>();
-        try {
-            // 1. JwtFilter에서 설정된 "customerEmail" 속성 가져오기
-            String customerEmail = (String) request.getAttribute("customerEmail");
-            System.out.println("인증된 사용자 이메일: " + customerEmail);
-
-            // 2. 인증 여부 확인
-            if (customerEmail == null) {
-                map.put("status", 403);
-                map.put("error", "유효하지 않은 토큰입니다. 인증이 필요합니다.");
-                return map;
-            }
-
-            // 3. 삭제하려는 주소 조회
-            CustomerAddress existingAddress = customerAddressRepository.findById(no)
-                    .orElseThrow(() -> new IllegalArgumentException("주소를 찾을 수 없습니다."));
-
-            // 4. 사용자가 자신의 주소인지 확인
-            if (!existingAddress.getCustomeremail().getCustomerEmail().equals(customerEmail)) {
-                map.put("status", 403);
-                map.put("error", "권한이 없습니다. 자신의 주소만 삭제할 수 있습니다.");
-                return map;
-            }
-
-            // 5. 주소 삭제
-            customerAddressRepository.delete(existingAddress);
-
-            // 6. 성공 응답 생성
-            map.put("status", 200);
-            map.put("message", "주소가 성공적으로 삭제되었습니다.");
-        } catch (IllegalArgumentException e) {
-            map.put("status", -1);
-            map.put("error", e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            map.put("status", -1);
-            map.put("error", "주소 삭제 중 오류가 발생했습니다.");
+    @DeleteMapping(value = "/delete.json")
+public Map<String, Object> deleteCustomerAddress(@RequestParam(name = "no") int no, HttpServletRequest request) {
+    Map<String, Object> map = new HashMap<>();
+    try {
+        // 1. JwtFilter에서 설정된 "customerEmail" 속성 가져오기
+        String customerEmail = (String) request.getAttribute("customerEmail");
+        System.out.println("인증된 사용자 이메일: " + customerEmail);
+        
+        // 2. 인증 여부 확인
+        if (customerEmail == null) {
+            map.put("status", 403);
+            map.put("error", "유효하지 않은 토큰입니다. 인증이 필요합니다.");
+            return map;
         }
-        return map;
+
+        // 3. 주소 존재 여부 확인
+        Optional<CustomerAddress> addressOptional = customerAddressRepository.findById(no);
+        if (addressOptional.isEmpty()) {
+            map.put("status", 404);
+            map.put("error", "해당 주소를 찾을 수 없습니다.");
+            return map;
+        }
+        
+        // 4. 주소의 소유자 확인
+        CustomerAddress address = addressOptional.get();
+        if (!address.getCustomeremail().getCustomerEmail().equals(customerEmail)) {
+            map.put("status", 403);
+            map.put("error", "이 주소를 삭제할 권한이 없습니다.");
+            return map;
+        }
+        
+        // 5. 주소 삭제
+        customerAddressRepository.deleteById(no);
+        
+        // 6. 성공 응답 생성
+        map.put("status", 200);
+        map.put("message", "주소가 성공적으로 삭제되었습니다.");
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        map.put("status", -1);
+        map.put("error", "주소 삭제 중 오류가 발생했습니다.");
     }
+    return map;
+}
 
 }

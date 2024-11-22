@@ -14,8 +14,8 @@ import com.example.dto.Store;
 public interface StoreMapper {
 
         // 회원가입 INSERT, UPDATE, DELETE는 반환값이 int로 고정됨
-        @Insert({ "INSERT INTO store(store_id, store_email, password, store_name, address, phone, category, start_pickup, end_pickup)",
-                        " VALUES(#{storeId}, #{storeEmail}, #{password}, #{storeName}, #{address}, #{phone}, #{category}, #{startPickup}, #{endPickup})" })
+        @Insert({ "INSERT INTO store(store_id, store_email, password, store_name, address, phone, category, start_pickup, end_pickup, latitude, longitude)",
+                        " VALUES(#{storeId}, #{storeEmail}, #{password}, #{storeName}, #{address}, #{phone}, #{category}, #{startPickup}, #{endPickup}, #{latitude}, #{longitude})" })
         public int insertStoreOne(Store store);
 
         // 아이디 중복 체크 메서드
@@ -44,13 +44,16 @@ public interface StoreMapper {
         })
         Store findStoreByIdAndEmail(String storeId, String storeEmail);
 
-        @Update("UPDATE store SET store_email = #{storeEmail}, store_name = #{storeName}, address = #{address}, phone = #{phone}, category = #{category}, start_pickup = #{startPickup}, end_pickup = #{endPickup} WHERE store_id = #{storeId}")
+        @Update("UPDATE store SET store_email = #{storeEmail}, store_name = #{storeName}, address = #{address}, phone = #{phone}, category = #{category}, start_pickup = #{startPickup}, end_pickup = #{endPickup} , latitude = #{latitude}, longitude = #{longitude} WHERE store_id = #{storeId}")
         @Results({
                         @Result(property = "storeId", column = "store_id"),
                         @Result(property = "storeEmail", column = "store_email"),
                         @Result(property = "storeName", column = "store_name"),
                         @Result(property = "startPickup", column = "start_pickup"),
-                        @Result(property = "endPickup", column = "end_pickup")
+                        @Result(property = "endPickup", column = "end_pickup"),
+                        @Result(property = "latitude", column = "latitude"),
+                        @Result(property = "longitude", column = "longitude")
+
         })
         int updateStore(Store store);
 
