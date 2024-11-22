@@ -76,7 +76,7 @@ public class OrderRestController {
 
             // 주문 생성
             Order order = new Order();
-            order.setOrderno(Long.parseLong(orderNo)); // 생성한 주문 번호 저장
+            order.setOrderno(orderNo); // 생성한 주문 번호 저장
             order.setRegdate(LocalDateTime.now());
             order.setStatus("주문 완료");
             order.setPay(0);
