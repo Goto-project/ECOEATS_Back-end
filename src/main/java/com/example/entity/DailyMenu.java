@@ -20,24 +20,30 @@ import lombok.Data;
 @Table(name = "dailymenu")
 @Data
 public class DailyMenu {
-    
+
     @Id
     @Column(name = "dailymenu_no")
     int dailymenuNo;
 
-
     @ManyToOne
-    @JoinColumn(name = "menu_no" , referencedColumnName = "menu_no")
+    @JoinColumn(name = "menu_no", referencedColumnName = "menu_no")
     @JsonProperty(access = Access.WRITE_ONLY)
     Menu menuNo;
 
     int price;
-    
-    int qty;
 
+    int qty;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @CreationTimestamp
-    private LocalDate regdate;
-}
+    LocalDate regdate;
 
+    // 기본 생성자 (JPA 필수)
+    public DailyMenu() {
+    }
+
+    // dailymenuNo를 매개변수로 받는 생성자 추가
+    public DailyMenu(int dailymenuNo) {
+        this.dailymenuNo = dailymenuNo;
+    }
+}
