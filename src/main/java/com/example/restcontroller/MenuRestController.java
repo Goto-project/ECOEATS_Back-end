@@ -123,16 +123,7 @@ public class MenuRestController {
                         dailyMenu.setPrice(updatedData.getPrice());
                         updated = true;
                     }
-                    if (updatedData.getStartpickup() != null
-                            && !updatedData.getStartpickup().equals(dailyMenu.getStartpickup())) {
-                        dailyMenu.setStartpickup(updatedData.getStartpickup());
-                        updated = true;
-                    }
-                    if (updatedData.getEndpickup() != null
-                            && !updatedData.getEndpickup().equals(dailyMenu.getEndpickup())) {
-                        dailyMenu.setEndpickup(updatedData.getEndpickup());
-                        updated = true;
-                    }
+                    
                     if (updatedData.getQty() != 0 && updatedData.getQty() != dailyMenu.getQty()) {
                         dailyMenu.setQty(updatedData.getQty());
                         updated = true;
@@ -392,3 +383,4 @@ public class MenuRestController {
         return map;
     }
 }
+
