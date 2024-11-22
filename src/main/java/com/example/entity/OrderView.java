@@ -27,7 +27,7 @@ public class OrderView {
 
     String status;
 
-    int totalprice;
+    int totalprice; // 총합
 
     String customeremail;
 
@@ -37,11 +37,11 @@ public class OrderView {
 
     String menuname;
 
-    int dailymenuprice;
+    int dailymenuprice; // 메뉴 단가
 
     int quantity;
 
-    int unitprice;
+    int unitprice; // 각 메뉴 단가 * 수량
 
     int pickup;
 
