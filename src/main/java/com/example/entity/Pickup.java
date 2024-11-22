@@ -1,5 +1,6 @@
 package com.example.entity;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -28,5 +29,6 @@ public class Pickup {
 
     int pickup;
 
-    Date regdate;
+    @CreationTimestamp
+    private LocalDateTime regdate;
 }

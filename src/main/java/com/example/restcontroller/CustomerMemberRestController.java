@@ -53,9 +53,6 @@ public class CustomerMemberRestController {
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
 
-
-    
-
     //로그아웃
     //127.0.0.1:8080/ROOT/api/customer/logout.do+
     @PostMapping(value = "/logout.do")
