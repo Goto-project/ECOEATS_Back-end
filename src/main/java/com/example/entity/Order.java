@@ -20,13 +20,22 @@ public class Order {
     @Id
     int orderno;
 
-    @ManyToOne
-    @JoinColumn(name = "cartno", referencedColumnName = "no")
-    Cart cartno;
-
-    int pay;
-    
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @CreationTimestamp
     Date regdate;
+
+    int pay;
+
+    String status;
+
+    int totalprice;
+
+    @ManyToOne
+    @JoinColumn(name = "customeremail", referencedColumnName = "customer_email")
+    CustomerMember customeremail;
+
+    @ManyToOne
+    @JoinColumn(name = "storeid", referencedColumnName = "store_id")
+    Store storeid;
+    
 }
