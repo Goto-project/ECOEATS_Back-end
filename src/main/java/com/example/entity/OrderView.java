@@ -35,14 +35,6 @@ public class OrderView {
 
     String storename;
 
-    String menuname;
-
-    int dailymenuprice; // 메뉴 단가
-
-    int quantity;
-
-    int unitprice; // 각 메뉴 단가 * 수량
-
     int pickup;
 
     Date pickupdate;
