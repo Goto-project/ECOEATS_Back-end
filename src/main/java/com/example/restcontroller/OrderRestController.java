@@ -21,6 +21,7 @@ import com.example.entity.DailyMenu;
 import com.example.entity.Menu;
 import com.example.entity.Order;
 import com.example.entity.Pickup;
+import com.example.entity.Status;
 import com.example.entity.Store;
 import com.example.repository.CartRepository;
 import com.example.repository.CustomerMemberRepository;
@@ -28,6 +29,7 @@ import com.example.repository.DailyMenuRepository;
 import com.example.repository.MenuRepository;
 import com.example.repository.OrderRepository;
 import com.example.repository.PickupRepository;
+import com.example.repository.StatusRepository;
 import com.example.token.TokenCreate;
 
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,7 @@ public class OrderRestController {
     final DailyMenuRepository dailyMenuRepository;
     final CustomerMemberRepository customerMemberRepository;
     final PickupRepository pickupRepository;
+    final StatusRepository statusRepository;
 
     final TokenCreate tokenCreate;
 
@@ -75,15 +78,13 @@ public class OrderRestController {
         Order order = optionalOrder.get();
 
         // 주문 상태가 이미 취소되었으면 취소할 수 없음
-        if ("주문 취소".equals(order.getStatus())) {
-            map.put("status", 400);
-            map.put("message", "이미 취소된 주문입니다.");
-            return map;
-        }
+        // if ("주문 취소".equals(order.getStatus())) {
+        //     map.put("status", 400);
+        //     map.put("message", "이미 취소된 주문입니다.");
+        //     return map;
+        // }
 
         // 주문 상태를 "주문 취소"로 변경
-        order.setStatus("주문 취소");
-        orderRepository.save(order);
 
         //
 
@@ -141,7 +142,6 @@ public class OrderRestController {
             Order order = new Order();
             order.setOrderno(orderNo); // 생성한 주문 번호 저장
             order.setRegdate(LocalDateTime.now());
-            order.setStatus("주문 완료");
             order.setPay(0);
             order.setTotalprice(0);
             order.setCustomeremail(customerMember); // 고객 정보 설정
@@ -163,6 +163,13 @@ public class OrderRestController {
             }
 
             orderRepository.save(order);
+
+            // status 객체 생성
+            Status status = new Status();
+            status.setOrderno(order);
+            status.setStatus("주문 완료");
+            statusRepository.save(status);
+            
 
             // 주문 관련된 pickup 객체 생성
             Pickup pickup = new Pickup();

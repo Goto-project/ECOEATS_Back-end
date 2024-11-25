@@ -1,49 +1,49 @@
-package com.example.entity;
+// package com.example.entity;
 
-import java.time.LocalTime;
-import java.util.Date;
+// import java.time.LocalTime;
+// import java.util.Date;
 
-import org.hibernate.annotations.Immutable;
+// import org.hibernate.annotations.Immutable;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+// import com.fasterxml.jackson.annotation.JsonFormat;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Data;
+// import jakarta.persistence.Entity;
+// import jakarta.persistence.Id;
+// import jakarta.persistence.Table;
+// import lombok.Data;
 
-@Entity
-@Data
-@Immutable
-@Table(name = "orderdetailview")
-public class OrderView {
+// @Entity
+// @Data
+// @Immutable
+// @Table(name = "orderdetailview")
+// public class OrderView {
     
-    @Id
-    String orderno;
+//     @Id
+//     String orderno;
 
-    Date orderdate;
+//     Date orderdate;
 
-    int pay;
+//     int pay;
 
-    String status;
+//     String status;
 
-    int totalprice; // 총합
+//     int totalprice; // 총합
 
-    String customeremail;
+//     String customeremail;
 
-    String storeid;
+//     String storeid;
 
-    String storename;
+//     String storename;
 
-    int pickup;
+//     int pickup;
 
-    Date pickupdate;
+//     Date pickupdate;
 
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    LocalTime startpickup;
+//     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+//     LocalTime startpickup;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    LocalTime endpickup;
-}
+//     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+//     LocalTime endpickup;
+// }
 
