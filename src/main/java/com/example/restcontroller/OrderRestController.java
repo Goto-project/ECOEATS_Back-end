@@ -30,7 +30,6 @@ import com.example.repository.OrderRepository;
 import com.example.repository.PickupRepository;
 import com.example.token.TokenCreate;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -47,7 +46,71 @@ public class OrderRestController {
 
     final TokenCreate tokenCreate;
 
-    // http://localhost:8080/ROOT/api/order/create
+    @PostMapping("/cancel")
+    public Map<String, Object> cancelOrder(
+        @RequestHeader(name = "Authorization") String token,
+        @RequestBody String orderNo) {
+    Map<String, Object> map = new HashMap<>();
+    try {
+        // Bearer 접두사를 제거하고 토큰만 추출
+        String rawToken = token.replace("Bearer ", "").trim();
+        // 토큰 유효성 검사
+        Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
+        String customerEmail = (String) tokenData.get("customerEmail");
+
+        if (customerEmail == null) {
+            map.put("status", 401);
+            map.put("message", "유효하지 않은 사용자입니다.");
+            return map;
+        }
+
+        // 주문을 찾기
+        Optional<Order> optionalOrder = orderRepository.findById(orderNo);
+        if (!optionalOrder.isPresent()) {
+            map.put("status", 404);
+            map.put("message", "주문을 찾을 수 없습니다.");
+            return map;
+        }
+
+        Order order = optionalOrder.get();
+
+        // 주문 상태가 이미 취소되었으면 취소할 수 없음
+        if ("주문 취소".equals(order.getStatus())) {
+            map.put("status", 400);
+            map.put("message", "이미 취소된 주문입니다.");
+            return map;
+        }
+
+        // 주문 상태를 "주문 취소"로 변경
+        order.setStatus("주문 취소");
+        orderRepository.save(order);
+
+        //
+
+        // 카트 아이템의 수량을 다시 더해주기
+        List<Cart> cartItems = cartRepository.findByOrderno(order);
+        for (Cart cart : cartItems) {
+            Optional<DailyMenu> optDailyMenu = dailyMenuRepository.findById(cart.getDailymenuNo().getDailymenuNo());
+            if (optDailyMenu.isPresent()) {
+                DailyMenu dailyMenu = optDailyMenu.get();
+                dailyMenu.setQty(dailyMenu.getQty() + cart.getQty()); // 취소된 카트 수량만큼 재고 회복
+                dailyMenuRepository.save(dailyMenu);
+            }
+        }
+
+        map.put("status", 200);
+        map.put("message", "주문이 성공적으로 취소되었습니다.");
+        return map;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        map.put("status", -1);
+        map.put("message", "서버 오류가 발생했습니다.");
+    }
+    return map;
+}
+
+    // 127.0.0.1:8080/ROOT/api/order/create
     @PostMapping("/create")
     public Map<String, Object> createOrderPOST(
             @RequestHeader(name = "Authorization") String token,
