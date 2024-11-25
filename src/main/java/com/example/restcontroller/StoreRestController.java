@@ -176,7 +176,7 @@ public class StoreRestController {
     @PutMapping(value = "/update.do", consumes = { "multipart/form-data" })
     public Map<String, Object> updatePUT(@RequestPart("store") Store store,
             @RequestHeader(name = "Authorization") String token,
-            @RequestPart(value = "file") MultipartFile file) {
+            @RequestPart(value = "file", required = false) MultipartFile file) { // file을 required = false로 변경
         Map<String, Object> map = new HashMap<>();
 
         // Bearer 접두사를 제거하여 순수 토큰만 전달
@@ -195,11 +195,7 @@ public class StoreRestController {
 
             seller.setStoreId(storeId);
 
-            if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
-                seller.setStoreName(store.getStoreName());
-            }
-
-            // 입력값이 없을 때 DB에 null이 들어가지 않도록 처리
+            // 가게 정보 업데이트
             if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
                 seller.setStoreName(store.getStoreName());
             }
@@ -224,22 +220,17 @@ public class StoreRestController {
                 seller.setEndPickup(store.getEndPickup());
             }
 
-            // 이미지 업데이트 로직
+            // 이미지 업데이트 로직 (파일이 있을 경우에만 처리)
             if (file != null && !file.isEmpty()) {
-                // 기존 이미지 삭제
-                System.out.println(storeId);
                 StoreImage storeImage = storeImageMapper.selectStoreImageByStoreId(storeId);
+
                 // 이미지가 있으면 덮어쓰기 로직
                 if (storeImage != null) {
-                    System.out.println(storeImage.getStoreId());
-                    System.out.println("storeImage : " + storeImage.getFilename());
-                    System.out.println(storeImage.getStoreimageNo());
                     storeImage.setFilename(file.getOriginalFilename());
                     storeImage.setFiletype(file.getContentType());
                     storeImage.setFilesize(file.getSize());
                     storeImage.setFiledata(file.getBytes());
                     storeImageMapper.updateStoreImage(storeImage); // 이미지 정보 업데이트
-
                 } else {
                     // 이미지가 없으면 새로 추가하는 로직
                     storeImage = new StoreImage();
@@ -262,12 +253,12 @@ public class StoreRestController {
             } else {
                 map.put("status", 400);
                 map.put("message", "회원 정보 수정 실패");
-
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             map.put("status", -1);
+            map.put("message", "서버 오류");
         }
         return map;
     }
@@ -311,7 +302,8 @@ public class StoreRestController {
     }
 
     // 리액트에서 아이디와 암호를 전달해줌 => DB에 있는지 확인 => 토큰 발행
-    // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸 해야함
+    // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸
+    // 해야함
     // 127.0.0.1:8080/ROOT/api/seller/login.do
     @PostMapping(value = "/login.do")
     public Map<String, Object> loginPOST(@RequestBody Store store) {
