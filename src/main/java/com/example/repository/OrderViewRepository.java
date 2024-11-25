@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.example.entity.OrderView;
 
 @Repository
-public interface OrderViewRepository extends JpaRepository<OrderView, Integer> {
+public interface OrderViewRepository extends JpaRepository<OrderView, String> {
     
     //customerEmail을 기준으로 데이터 필터링
     List<OrderView> findByCustomeremail(String customerEmail);
