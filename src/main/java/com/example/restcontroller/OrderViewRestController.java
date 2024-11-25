@@ -25,9 +25,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(value = "/api/orderview")
 public class OrderViewRestController {
 
-
-    final OrderViewRepository orderViewRepository;
-    final TokenCreate tokenCreate;
+    // final OrderViewRepository orderViewRepository;
+    // final TokenCreate tokenCreate;
     
     //날짜별로 주문 했던 내역 출력(마이페이지 기능)
     //127.0.0.1:8080/ROOT/api/orderview/orderbydate
