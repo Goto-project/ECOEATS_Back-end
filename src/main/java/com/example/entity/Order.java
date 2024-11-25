@@ -1,10 +1,8 @@
 package com.example.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.format.annotation.DateTimeFormat;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -18,15 +16,23 @@ import lombok.Data;
 public class Order {
     
     @Id
-    int orderno;
+    String orderno;
+
+    @Column(columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime regdate;
+    int pay;
+
+    String status;
+
+    int totalprice;
 
     @ManyToOne
-    @JoinColumn(name = "cartno", referencedColumnName = "no")
-    Cart cartno;
+    @JoinColumn(name = "customeremail", referencedColumnName = "customer_email")
+    CustomerMember customeremail;
 
-    int pay;
+    @ManyToOne
+    @JoinColumn(name = "storeid", referencedColumnName = "store_id")
+    Store storeid;
     
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    @CreationTimestamp
-    Date regdate;
 }
+

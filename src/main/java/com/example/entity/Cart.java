@@ -1,11 +1,9 @@
 package com.example.entity;
 
-import java.util.Date;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -18,11 +16,8 @@ import lombok.Data;
 public class Cart {
     
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // id 값 자동 생성
     int no;
-
-    @ManyToOne
-    @JoinColumn(name = "storeid", referencedColumnName = "store_id")
-    Store storeid;
 
     @ManyToOne
     @JoinColumn(name = "dailymenuno", referencedColumnName = "dailymenu_no")
@@ -30,13 +25,10 @@ public class Cart {
 
     int qty;
 
+    int price;
+
     @ManyToOne
-    @JoinColumn(name = "customeremail" , referencedColumnName = "customer_email")
-    CustomerMember customerEmail;
-
-    String status;
-
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:MM:ss.SSS")
-    @CreationTimestamp
-    Date regdate;
+    @JoinColumn(name = "orderno", referencedColumnName = "orderno")
+    Order orderno;
 }
+

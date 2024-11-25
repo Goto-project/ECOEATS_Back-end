@@ -19,31 +19,31 @@ import lombok.Data;
 public class OrderView {
     
     @Id
-    int orderno;
+    String orderno;
 
     Date orderdate;
+
+    int pay;
+
+    String status;
+
+    int totalprice; // 총합
+
+    String customeremail;
+
+    String storeid;
+
+    String storename;
+
+    int pickup;
+
+    Date pickupdate;
+
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime startpickup;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime endpickup;
-
-    String storeid;
-
-    String storename;
-
-    String customeremail;
-
-    String customernickname;
-
-    String menuname;
-
-    int quantity;
-
-    int menuprice;
-
-    String paymentmethod;
-
-    int totalprice;
 }
+
