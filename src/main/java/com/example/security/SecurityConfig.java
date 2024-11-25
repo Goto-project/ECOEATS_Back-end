@@ -19,7 +19,7 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/admin", "/admin/*").hasRole("ADMIN")
+                .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/seller", "/seller/*").hasAnyRole("ADMIN", "SELLER")
                 .requestMatchers("/customer", "/customer/*").hasRole("CUSTOEMR")
                 .requestMatchers("/member1", "/member1/**").permitAll()
@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .loginProcessingUrl("/loginacion.do")
                 .usernameParameter("userid")
                 .passwordParameter("userpw")
-                .defaultSuccessUrl("/home.do"));
+                .defaultSuccessUrl("/admin/home.do"));
 
         // 로그아웃 페이지 설정
         http.logout((logout) -> logout

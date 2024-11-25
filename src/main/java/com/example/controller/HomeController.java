@@ -63,8 +63,9 @@ public class HomeController {
                 // 세션에 값 저장
                 httpSession.setAttribute("login", 1);
                 httpSession.setAttribute("loginid", obj.getAdminId());
+                httpSession.setAttribute("role", "ROLE_ADMIN"); // role 저장
                 System.out.println("로그인 성공: 세션 저장 완료");
-                return "redirect:/home.do"; // 홈 페이지로 이동
+                return "redirect:/admin/home"; // 홈 페이지로 이동
             } else {
                 System.out.println("비밀번호가 일치하지 않습니다.");
             }
@@ -113,10 +114,10 @@ public class HomeController {
     }
 
     //127.0.0.1:8080/ROOT/home.do
-    @GetMapping(value = {"/" , "/home.do" , "/main.do"})
-    public String homeGet(){
-        return "home";
-    }
+    // @GetMapping(value = {"/" , "/home.do" , "/main.do"})
+    // public String homeGet(){
+    //     return "home";
+    // }
 
     
     // //react => build => 표시

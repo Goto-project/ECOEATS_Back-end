@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
-import com.example.dto.Store;
+import com.example.dto.StoreDTO;
 
 @Mapper
 public interface StoreMapper {
@@ -16,7 +16,7 @@ public interface StoreMapper {
         // 회원가입 INSERT, UPDATE, DELETE는 반환값이 int로 고정됨
         @Insert({ "INSERT INTO store(store_id, store_email, password, store_name, address, phone, category, start_pickup, end_pickup)",
                         " VALUES(#{storeId}, #{storeEmail}, #{password}, #{storeName}, #{address}, #{phone}, #{category}, #{startPickup}, #{endPickup})" })
-        public int insertStoreOne(Store store);
+        public int insertStoreOne(StoreDTO store);
 
         // 아이디 중복 체크 메서드
         @Select("SELECT COUNT(*) FROM store WHERE store_id = #{storeId}")
@@ -32,7 +32,7 @@ public interface StoreMapper {
                         @Result(property = "startPickup", column = "start_pickup"),
                         @Result(property = "endPickup", column = "end_pickup")
         })
-        public Store selectStoreOne(String storeId);
+        public StoreDTO selectStoreOne(String storeId);
 
         @Select({ "SELECT * FROM store WHERE store_id = #{storeId} AND store_email = #{storeEmail}" })
         @Results({
@@ -42,7 +42,7 @@ public interface StoreMapper {
                         @Result(property = "startPickup", column = "start_pickup"),
                         @Result(property = "endPickup", column = "end_pickup")
         })
-        Store findStoreByIdAndEmail(String storeId, String storeEmail);
+        StoreDTO findStoreByIdAndEmail(String storeId, String storeEmail);
 
         @Update("UPDATE store SET store_email = #{storeEmail}, store_name = #{storeName}, address = #{address}, phone = #{phone}, category = #{category}, start_pickup = #{startPickup}, end_pickup = #{endPickup} WHERE store_id = #{storeId}")
         @Results({
@@ -52,10 +52,10 @@ public interface StoreMapper {
                         @Result(property = "startPickup", column = "start_pickup"),
                         @Result(property = "endPickup", column = "end_pickup")
         })
-        int updateStore(Store store);
+        int updateStore(StoreDTO store);
 
         @Update("UPDATE store SET password = #{password} WHERE store_id = #{storeId}")
-        int updatePassword(Store store);
+        int updatePassword(StoreDTO store);
 
         @Delete({ "DELETE FROM store WHERE store_id = #{storeId}" })
         int deleteStore(String storeId);

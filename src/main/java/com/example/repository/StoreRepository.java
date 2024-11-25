@@ -7,5 +7,5 @@ import com.example.entity.Store;
 
 @Repository
 public interface StoreRepository extends JpaRepository<Store, String>{
-    
+    Store findByStoreId(String storeId);
 }

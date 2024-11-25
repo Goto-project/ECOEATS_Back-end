@@ -7,6 +7,8 @@ import java.util.Map;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,12 +19,14 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.dto.Store;
+import com.example.dto.StoreDTO;
 import com.example.dto.StoreImage;
 import com.example.dto.StoreToken;
+import com.example.entity.Store;
 import com.example.mapper.StoreImageMapper;
 import com.example.mapper.StoreMapper;
 import com.example.mapper.TokenMapper;
+import com.example.repository.StoreRepository;
 import com.example.repository.StoreTokenRepository;
 import com.example.token.TokenCreate;
 
@@ -63,7 +67,7 @@ public class StoreRestController {
                 return map;
             }
 
-            Store store = storeMapper.selectStoreOne(storeId);
+            StoreDTO store = storeMapper.selectStoreOne(storeId);
             if (store == null) {
                 map.put("status", 404);
                 map.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -97,7 +101,7 @@ public class StoreRestController {
         Map<String, Object> map = new HashMap<>();
 
         // 아이디와 이메일을 확인하고, 비밀번호를 업데이트
-        Store store = storeMapper.findStoreByIdAndEmail(storeId, storeEmail);
+        StoreDTO store = storeMapper.findStoreByIdAndEmail(storeId, storeEmail);
         if (store != null) {
             // 새 비밀번호 암호화
             String encodedPwd = bcpe.encode(newPwd);
@@ -135,7 +139,7 @@ public class StoreRestController {
                 return map;
             }
 
-            Store seller = storeMapper.selectStoreOne(storeId);
+            StoreDTO seller = storeMapper.selectStoreOne(storeId);
 
             if (seller != null) {
                 // 현재 비밀번호가 일치하는지 확인
@@ -174,7 +178,7 @@ public class StoreRestController {
     // 정보 수정
     // 127.0.0.1:8080/ROOT/api/seller/update.do
     @PutMapping(value = "/update.do", consumes = { "multipart/form-data" })
-    public Map<String, Object> updatePUT(@RequestPart("store") Store store,
+    public Map<String, Object> updatePUT(@RequestPart("store") StoreDTO store,
             @RequestHeader(name = "Authorization") String token,
             @RequestPart(value = "file") MultipartFile file) {
         Map<String, Object> map = new HashMap<>();
@@ -191,7 +195,7 @@ public class StoreRestController {
                 return map;
             }
 
-            Store seller = storeMapper.selectStoreOne(storeId);
+            StoreDTO seller = storeMapper.selectStoreOne(storeId);
 
             seller.setStoreId(storeId);
 
@@ -314,11 +318,11 @@ public class StoreRestController {
     // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸 해야함
     // 127.0.0.1:8080/ROOT/api/seller/login.do
     @PostMapping(value = "/login.do")
-    public Map<String, Object> loginPOST(@RequestBody Store store) {
+    public Map<String, Object> loginPOST(@RequestBody StoreDTO store) {
         Map<String, Object> map = new HashMap<>();
         try {
             // 아이디를 이용해서 아이디와 암호 가져오기
-            Store seller = storeMapper.selectStoreOne(store.getStoreId());
+            StoreDTO seller = storeMapper.selectStoreOne(store.getStoreId());
             map.put("status", 0);
 
             // 사용자가 입력한 암호와 엔코더된 DB 암호 비교
@@ -357,7 +361,7 @@ public class StoreRestController {
     // "storeName":"가나다", "address":"서면", "phone":"010", "category":"도시락",
     // "defaultPickup":"15:30"}
     @PostMapping(value = "/join.do", consumes = { "multipart/form-data" })
-    public Map<String, Object> joinPOST(@RequestPart("store") Store store,
+    public Map<String, Object> joinPOST(@RequestPart("store") StoreDTO store,
             @RequestPart(value = "file") MultipartFile file) {
 
         Map<String, Object> map = new HashMap<>();

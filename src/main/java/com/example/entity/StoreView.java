@@ -22,6 +22,8 @@ public class StoreView {
     @Id
     String storeid;
 
+    String storeemail;
+
     String storename;
 
     String address;
