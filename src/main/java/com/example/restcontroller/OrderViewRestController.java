@@ -193,6 +193,7 @@ public class OrderViewRestController {
         }
         return map;
     }
+    
      //결제완료 화면 출력(영수증)
     //127.0.0.1:8080/ROOT/api/orderview/payment
     @GetMapping(value = "/payment")
@@ -235,6 +236,7 @@ public class OrderViewRestController {
                  // 픽업 상태, 픽업 시간, 주문 상태 처리
                 String pickup = (order.getPickup() == 1) ? "픽업 완료" : "픽업 대기";
                 String pickupDate = (order.getPickup() == 1) ? order.getPickupdate().toString() : "픽업 대기 중";
+                String pickupDate1 = (order.getPickup() ==2) ? order.getPickupdate().toString() : "픽업 대기 중";
                 String status = (order.getStatus() == "주문 완료") ? "주문 완료" : "주문 취소";
 
                 receipt.put("pickup", pickup);
