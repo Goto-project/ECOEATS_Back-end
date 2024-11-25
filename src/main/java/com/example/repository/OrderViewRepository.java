@@ -1,11 +1,11 @@
-package com.example.repository;
+// package com.example.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+// import org.springframework.data.jpa.repository.JpaRepository;
+// import org.springframework.stereotype.Repository;
 
-import com.example.entity.OrderView;
+// import com.example.entity.OrderView;
 
-@Repository
-public interface OrderViewRepository extends JpaRepository<OrderView, String> {
+// @Repository
+// public interface OrderViewRepository extends JpaRepository<OrderView, String> {
     
-}
+// }

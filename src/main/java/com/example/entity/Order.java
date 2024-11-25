@@ -22,8 +22,6 @@ public class Order {
     private LocalDateTime regdate;
     int pay;
 
-    String status;
-
     int totalprice;
 
     @ManyToOne
