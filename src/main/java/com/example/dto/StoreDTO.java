@@ -12,7 +12,7 @@ import lombok.Data;
 
 @Data
 @Entity
-public class Store {
+public class StoreDTO {
     
     @Id  // storeId가 primary key로 사용된다면 이 어노테이션 추가
     private String storeId;
