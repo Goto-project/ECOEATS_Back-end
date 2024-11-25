@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.example.entity.OrderView;
 
 @Repository
-public interface OrderViewRepository extends JpaRepository<OrderView, Integer> {
+public interface OrderViewRepository extends JpaRepository<OrderView, String> {
     
 }
