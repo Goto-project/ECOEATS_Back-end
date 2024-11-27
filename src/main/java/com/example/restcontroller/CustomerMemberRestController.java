@@ -136,6 +136,7 @@ public class CustomerMemberRestController {
             CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
     
             if (customerMember != null) {
+                map.put("customerEmail", customerMember.getCustomerEmail());
                 map.put("nickname", customerMember.getNickname());
                 map.put("phone", customerMember.getPhone());
                 map.put("status", 200);
