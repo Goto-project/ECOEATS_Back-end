@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 홈</title>
+</head>
+
+<body>
+    <h3>관리자용 홈</h3>
+
+    <!-- 메뉴 1로 이동하는 버튼 -->
+    <a th:href="@{/admin/home.do(menu=1)}">
+        <button>가게 관리</button>
+    </a>
+
+    <!-- 메뉴 2로 이동하는 버튼 -->
+    <a th:href="@{/admin/home.do(menu=2)}">
+        <button>고객 관리</button>
+    </a>
+
+    <!-- 메뉴 3로 이동하는 버튼 -->
+    <a th:href="@{/admin/home.do(menu=3)}">
+        <button>리뷰 관리</button>
+    </a>
+
+    <div th:if="${menu == 1 }">
+        <h5>가게 관리</h5>
+        <table border="1">
+            <tr th:each="obj, idx : ${list}">
+                <form th:action="@{/admin/storedelete.do}" method="post" class="form">
+                    <td th:text="${obj.storeId}"></td>
+                    <td th:text="${obj.storeName}" name="name"></td>
+                    <td th:text="${obj.storeEmail}" name="email"></td>
+                    <td th:text="${obj.phone}" name="phone"></td>
+                    <td th:text="${obj.address}" name="address"></td>
+                    <td th:text="${obj.category}" name="category"></td>
+                    <td>
+                        <input type="hidden" name="storeId" th:value="${obj.storeId}" />
+                        <button type="button" th:onclick="handleDelete([[${idx.index}]])">삭제</button>
+                    </td>
+                </form>
+            </tr>
+        </table>
+
+        <th:block th:each="page : ${#numbers.sequence(1, pages)}">
+            <a th:href="@{/admin/home.do(menu=1,page=${page})}"><button th:text="${page}"></button></a>
+        </th:block>
+    </div>
+
+    <div th:if="${menu == 2}">
+        <h5>고객 관리</h5>
+        <table border="1">
+            <tr th:each="obj, idx : ${list}">
+                <form th:action="@{/admin/customerdelete.do}" method="post" class="form">
+                    <td th:text="${obj.customerEmail}"></td>
+                    <td th:text="${obj.nickname}" name="name"></td>
+                    <td th:text="${obj.phone}" name="phone"></td>
+                    <td>
+                        <input type="hidden" name="customerEmail" th:value="${obj.customerEmail}" />
+                        <button type="button" th:onclick="handleDelete2([[${idx.index}]])">삭제</button>
+                    </td>
+                </form>
+            </tr>
+        </table>
+
+        <th:block th:each="page : ${#numbers.sequence(1, pages)}">
+            <a th:href="@{/admin/home.do(menu=2,page=${page})}"><button th:text="${page}"></button></a>
+        </th:block>
+    </div>
+
+    <div th:if="${menu == 3}">
+        <h5>가게별 리뷰 조회</h5>
+        <!-- 가게 선택 -->
+        <form th:action="@{/admin/home}" method="get">
+            <label for="storeId">가게 선택:</label>
+            <select name="storeId" id="storeId">
+                <option value="" th:selected="${storeId == null}">전체</option>
+                <option th:each="store : ${stores}" th:value="${store.storeId}" th:text="${store.storeName}" 
+                    th:selected="${storeId == store.storeId}"></option>
+            </select>
+            <button type="submit">조회</button>
+        </form>
+
+        <!-- 리뷰 목록 테이블 -->
+        <table border="1">
+            <tr>
+                <th>리뷰 번호</th>
+                <th>고객 이메일</th>
+                <th>평점</th>
+                <th>내용</th>
+                <th>작성일</th>
+            </tr>
+            <tr th:each="review : ${reviews}">
+                <td th:text="${review.reviewNo}"></td>
+                <td th:text="${review.customerEmail.customerEmail}"></td>
+                <td th:text="${review.rating}"></td>
+                <td th:text="${review.content}"></td>
+                <td th:text="${review.regdate}"></td>
+            </tr>
+        </table>
+
+        <th:block th:each="page : ${#numbers.sequence(1, pages)}">
+            <a th:href="@{/admin/home.do(menu=3,page=${page})}"><button th:text="${page}"></button></a>
+        </th:block>
+    </div>
+
+    <script th:inline="javascript">
+        const handleDelete = (idx) => {
+            if (confirm('삭제할까요?')) {
+                const form = document.getElementsByClassName('form'); //n개를 가져옴
+                form[idx].action =  /*[[@{/admin/storedelete.do}]]*/"";
+                form[idx].submit();
+            }
+        }
+
+        const handleDelete2 = (idx) => {
+            if (confirm('삭제할까요?')) {
+                const form = document.getElementsByClassName('form'); //n개를 가져옴
+                form[idx].action =  /*[[@{/admin/customerdelete.do}]]*/"";
+                form[idx].submit();
+            }
+        }
+
+        const handleDelete3 = (idx) => {
+            if (confirm('삭제할까요?')) {
+                const form = document.getElementsByClassName('form'); //n개를 가져옴
+                form[idx].action =  /*[[@{/admin/reviewdelete.do}]]*/"";
+                form[idx].submit();
+            }
+        }
+    </script>
+</body>
+
+</html>
