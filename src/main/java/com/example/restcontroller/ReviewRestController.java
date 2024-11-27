@@ -87,7 +87,7 @@ public class ReviewRestController {
     }
 
 
-
+// 127.0.0.1:8080/ROOT/api/review/myreviews.json
     @GetMapping(value = "/myreviews.json")
     public Map<String, Object> getMyReviews(HttpServletRequest request) {
         Map<String, Object> map = new HashMap<>();
