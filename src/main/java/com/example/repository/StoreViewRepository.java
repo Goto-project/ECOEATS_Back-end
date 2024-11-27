@@ -36,15 +36,6 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
                     ELSE COALESCE(ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)), 0)
                 END
             """, 
-            countQuery = """
-            SELECT COUNT(*)
-            FROM storedetailview s
-            WHERE
-                s.latitude IS NOT NULL AND s.longitude IS NOT NULL
-                AND ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)) <= 1000
-                AND (:category IS NULL OR s.category = :category)
-            """,
             nativeQuery = true)
-            Page<StoreView> findStoresWithinRadiusPaged(BigDecimal customerLatitude, BigDecimal customerLongitude, String category, String sortBy, Pageable pageable);
-
+    List<StoreView> findStoresWithinRadius(BigDecimal customerLatitude, BigDecimal customerLongitude, String category, String sortBy);
 }
