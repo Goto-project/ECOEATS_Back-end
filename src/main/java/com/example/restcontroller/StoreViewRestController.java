@@ -36,16 +36,15 @@ public class StoreViewRestController {
     // 127.0.0.1:8080/ROOT/api/store/list
     // 전체 가게 리스트 보기
     @GetMapping(value = "/list")
-    public Map<String, Object> listGET(@RequestParam(name = "page") int page) {
+    public Map<String, Object> listGET() {
         Map<String, Object> map = new HashMap<>();
         try {
             // of(페이지 번호 (0부터), 페이지 개수, 정렬)
-            PageRequest pageRequest = PageRequest.of((page - 1), 6, Sort.by("storeid").ascending());
-            Page<StoreView> list = storeViewRepository.findAll(pageRequest);
+            List<StoreView> list = storeViewRepository.findAll();
             long total = storeViewRepository.count();
 
             // 각 가게에 이미지 URL 추가
-            for (StoreView storeView : list.getContent()) {
+            for (StoreView storeView : list) {
                 // storeId로 이미지 조회
                 StoreImage storeImage = storeImageRepository.findByStoreId_StoreId(storeView.getStoreid()); // findByStoreId
                                                                                                             // 메서드를 가정
@@ -57,7 +56,7 @@ public class StoreViewRestController {
             }
 
             map.put("status", 200);
-            map.put("result", list.getContent());
+            map.put("result", list);
             map.put("total", total);
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,8 +72,7 @@ public class StoreViewRestController {
             @RequestParam BigDecimal customerLatitude,
             @RequestParam BigDecimal customerLongitude,
             @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "distance") String sortBy,
-            @RequestParam(defaultValue = "1") int page) {
+            @RequestParam(defaultValue = "distance") String sortBy) {
 
         Map<String, Object> map = new HashMap<>();
 
@@ -88,13 +86,10 @@ public class StoreViewRestController {
                 sortBy = "distance"; // 기본값 'distance'로 설정
             }
 
-            // 페이징 및 정렬 설정
-            PageRequest pageRequest = PageRequest.of(page - 1, 6);
-            Page<StoreView> storeViewPage = storeViewRepository.findStoresWithinRadiusPaged(customerLatitude,
-                    customerLongitude, category, sortBy, pageRequest);
+            List<StoreView> storeViewList = storeViewRepository.findStoresWithinRadius(customerLatitude, customerLongitude, category, sortBy);
 
             // 각 가게에 이미지 URL 추가
-            for (StoreView storeView : storeViewPage.getContent()) {
+            for (StoreView storeView : storeViewList) {
                 // storeId로 이미지 조회
                 StoreImage storeImage = storeImageRepository.findByStoreId_StoreId(storeView.getStoreid()); // findByStoreId
                                                                                                             // 메서드를 가정
@@ -107,9 +102,7 @@ public class StoreViewRestController {
 
             // 결과 반환
             map.put("status", 200);
-            map.put("result", storeViewPage.getContent()); // 현재 페이지의 데이터
-            map.put("totalPages", storeViewPage.getTotalPages()); // 총 페이지 수
-            map.put("totalElements", storeViewPage.getTotalElements()); // 총 데이터 수
+            map.put("result", storeViewList); // 전체 가게 목록
         } catch (Exception e) {
             e.printStackTrace();
             map.put("status", -1);
