@@ -20,6 +20,8 @@ import lombok.Data;
 public class OrderView {
     
     @Id
+    int no;
+    
     String ordernumber;
 
     int paymentstatus;
