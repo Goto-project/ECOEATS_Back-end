@@ -35,8 +35,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 
 
-
-
 public class CustomerBackEndApplication extends SpringBootServletInitializer{
 
 	public static void main(String[] args) {

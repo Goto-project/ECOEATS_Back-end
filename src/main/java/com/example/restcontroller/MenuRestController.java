@@ -28,6 +28,7 @@ import com.example.repository.DailyMenuRepository;
 import com.example.repository.MenuImageRepository;
 import com.example.repository.MenuRepository;
 import com.example.token.TokenCreate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -210,7 +211,7 @@ public class MenuRestController {
     // ======가게 전체 메뉴 관리=======
     // 메뉴 추가
     @PostMapping(value = "/add.do", consumes = { "multipart/form-data" })
-    public Map<String, Object> addMenu(@RequestPart("menu") MenuDTO menu,
+    public Map<String, Object> addMenu(@RequestPart("menu") String menuJson,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestHeader(name = "Authorization") String token) {
 
@@ -227,7 +228,11 @@ public class MenuRestController {
                 return map;
             }
 
+            // 메뉴 정보를 JSON 파싱
+            ObjectMapper objectMapper = new ObjectMapper();
+            MenuDTO menu = objectMapper.readValue(menuJson, MenuDTO.class);
             menu.setStoreId(storeId);
+
             int menuResult = menuMapper.insertMenu(menu);
 
             if (menuResult > 0) {

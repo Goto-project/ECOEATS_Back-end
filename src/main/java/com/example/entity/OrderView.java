@@ -1,5 +1,6 @@
 package com.example.entity;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 
@@ -15,35 +16,47 @@ import lombok.Data;
 @Entity
 @Data
 @Immutable
-@Table(name = "orderdetailview")
+@Table(name = "orderview")
 public class OrderView {
     
     @Id
-    String orderno;
+    int no;
+    
+    String ordernumber;
 
-    Date orderdate;
+    int paymentstatus;
 
-    int pay;
-
-    String status;
-
-    int totalprice; // 총합
+    int totalprice;
 
     String customeremail;
 
-    String storeid;
+    String storeid; 
+
+    String orderstatus;
 
     String storename;
 
-    int pickup;
+    int dailymenuno;
 
-    Date pickupdate;
+    LocalDateTime ordertime;
 
+    String menuname;
+
+    int dailymenuprice;
+
+    int quantity;
+
+    int unitprice;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime startpickup;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime endpickup;
+    
+    int pickupstatus;
+
+    LocalDateTime  pickuptime;
+
 }
 

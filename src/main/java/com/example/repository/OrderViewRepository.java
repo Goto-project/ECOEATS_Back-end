@@ -10,8 +10,11 @@ import com.example.entity.OrderView;
 @Repository
 public interface OrderViewRepository extends JpaRepository<OrderView, Integer> {
     
-    //customerEmail을 기준으로 데이터 필터링
-    List<OrderView> findByCustomeremail(String customerEmail);
+     // 고객 이메일을 기준으로 주문 내역 조회
+     List<OrderView> findByCustomeremail(String customerEmail);
 
-    List<OrderView> findByStoreid(String storeId);
+     // 가게 ID를 기준으로 주문 내역 조회
+     List<OrderView> findByStoreid(String storeId);
+
+     List<OrderView> findByCustomeremailAndOrdernumber(String customeremail, String ordernumber);
 }

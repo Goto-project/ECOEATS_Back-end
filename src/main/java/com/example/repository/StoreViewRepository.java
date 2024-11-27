@@ -3,6 +3,8 @@ package com.example.repository;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -14,7 +16,7 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
 
     // 1km이내 가게 보기 (카테고리별, 거리순, 별점 높은 순, 리뷰 많은 순)
     @Query(value = """
-            SELECT s.storeid, s.storename, s.address, s.phone, s.category,
+            SELECT s.storeid, s.storeemail, s.storename, s.address, s.phone, s.category,
                    s.latitude, s.longitude, s.startpickup, s.endpickup,
                    COALESCE(s.avgrating, 0) AS avgrating,
                    COALESCE(s.bookmarkcount, 0) AS bookmarkcount,
@@ -33,7 +35,7 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
                     WHEN :sortBy = 'review' THEN -COALESCE(s.reviewcount, 0)
                     ELSE COALESCE(ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)), 0)
                 END
-            """, nativeQuery = true)
+            """, 
+            nativeQuery = true)
     List<StoreView> findStoresWithinRadius(BigDecimal customerLatitude, BigDecimal customerLongitude, String category, String sortBy);
-
 }

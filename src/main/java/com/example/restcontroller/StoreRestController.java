@@ -8,6 +8,8 @@ import java.util.Map;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,12 +20,14 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.dto.Store;
+import com.example.dto.StoreDTO;
 import com.example.dto.StoreImage;
 import com.example.dto.StoreToken;
+import com.example.entity.Store;
 import com.example.mapper.StoreImageMapper;
 import com.example.mapper.StoreMapper;
 import com.example.mapper.TokenMapper;
+import com.example.repository.StoreRepository;
 import com.example.repository.StoreTokenRepository;
 import com.example.service.CustomerAddressService;
 import com.example.token.TokenCreate;
@@ -66,7 +70,7 @@ public class StoreRestController {
                 return map;
             }
 
-            Store store = storeMapper.selectStoreOne(storeId);
+            StoreDTO store = storeMapper.selectStoreOne(storeId);
             if (store == null) {
                 map.put("status", 404);
                 map.put("message", "회원 정보를 찾을 수 없습니다.");
@@ -100,7 +104,7 @@ public class StoreRestController {
         Map<String, Object> map = new HashMap<>();
 
         // 아이디와 이메일을 확인하고, 비밀번호를 업데이트
-        Store store = storeMapper.findStoreByIdAndEmail(storeId, storeEmail);
+        StoreDTO store = storeMapper.findStoreByIdAndEmail(storeId, storeEmail);
         if (store != null) {
             // 새 비밀번호 암호화
             String encodedPwd = bcpe.encode(newPwd);
@@ -138,7 +142,7 @@ public class StoreRestController {
                 return map;
             }
 
-            Store seller = storeMapper.selectStoreOne(storeId);
+            StoreDTO seller = storeMapper.selectStoreOne(storeId);
 
             if (seller != null) {
                 // 현재 비밀번호가 일치하는지 확인
@@ -177,10 +181,10 @@ public class StoreRestController {
     // 정보 수정
     // 127.0.0.1:8080/ROOT/api/seller/update.do
     @PutMapping(value = "/update.do", consumes = { "multipart/form-data" })
-public Map<String, Object> updatePUT(@RequestPart("store") Store store,
-        @RequestHeader(name = "Authorization") String token,
-        @RequestPart(value = "file") MultipartFile file) {
-    Map<String, Object> map = new HashMap<>();
+    public Map<String, Object> updatePUT(@RequestPart("store") StoreDTO store,
+            @RequestHeader(name = "Authorization") String token,
+            @RequestPart(value = "file", required = false) MultipartFile file) { // file을 required = false로 변경
+        Map<String, Object> map = new HashMap<>();
 
     // Bearer 접두사를 제거하여 순수 토큰만 전달
     String rawToken = token.replace("Bearer ", "").trim();
@@ -194,18 +198,14 @@ public Map<String, Object> updatePUT(@RequestPart("store") Store store,
             return map;
         }
 
-        Store seller = storeMapper.selectStoreOne(storeId);
+            StoreDTO seller = storeMapper.selectStoreOne(storeId);
 
         seller.setStoreId(storeId);
 
-        if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
-            seller.setStoreName(store.getStoreName());
-        }
-
-        // 입력값이 없을 때 DB에 null이 들어가지 않도록 처리
-        if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
-            seller.setStoreName(store.getStoreName());
-        }
+            // 가게 정보 업데이트
+            if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
+                seller.setStoreName(store.getStoreName());
+            }
 
         if (store.getAddress() != null && !store.getAddress().isEmpty()) {
             seller.setAddress(store.getAddress());
@@ -247,52 +247,48 @@ public Map<String, Object> updatePUT(@RequestPart("store") Store store,
             seller.setLongitude(store.getLongitude());
         }
 
-        // 이미지 업데이트 로직
-        if (file != null && !file.isEmpty()) {
-            // 기존 이미지 삭제
-            System.out.println(storeId);
-            StoreImage storeImage = storeImageMapper.selectStoreImageByStoreId(storeId);
-            // 이미지가 있으면 덮어쓰기 로직
-            if (storeImage != null) {
-                System.out.println(storeImage.getStoreId());
-                System.out.println("storeImage : " + storeImage.getFilename());
-                System.out.println(storeImage.getStoreimageNo());
-                storeImage.setFilename(file.getOriginalFilename());
-                storeImage.setFiletype(file.getContentType());
-                storeImage.setFilesize(file.getSize());
-                storeImage.setFiledata(file.getBytes());
-                storeImageMapper.updateStoreImage(storeImage); // 이미지 정보 업데이트
+            // 이미지 업데이트 로직 (파일이 있을 경우에만 처리)
+            if (file != null && !file.isEmpty()) {
+                StoreImage storeImage = storeImageMapper.selectStoreImageByStoreId(storeId);
 
-            } else {
-                // 이미지가 없으면 새로 추가하는 로직
-                storeImage = new StoreImage();
-                storeImage.setStoreId(storeId);
-                storeImage.setFilename(file.getOriginalFilename());
-                storeImage.setFiletype(file.getContentType());
-                storeImage.setFilesize(file.getSize());
-                storeImage.setFiledata(file.getBytes());
-                storeImageMapper.insertStoreImage(storeImage); // 새 이미지 정보 추가
+                // 이미지가 있으면 덮어쓰기 로직
+                if (storeImage != null) {
+                    storeImage.setFilename(file.getOriginalFilename());
+                    storeImage.setFiletype(file.getContentType());
+                    storeImage.setFilesize(file.getSize());
+                    storeImage.setFiledata(file.getBytes());
+                    storeImageMapper.updateStoreImage(storeImage); // 이미지 정보 업데이트
+                } else {
+                    // 이미지가 없으면 새로 추가하는 로직
+                    storeImage = new StoreImage();
+                    storeImage.setStoreId(storeId);
+                    storeImage.setFilename(file.getOriginalFilename());
+                    storeImage.setFiletype(file.getContentType());
+                    storeImage.setFilesize(file.getSize());
+                    storeImage.setFiledata(file.getBytes());
+                    storeImageMapper.insertStoreImage(storeImage); // 새 이미지 정보 추가
+                }
             }
-        }
 
         // 정보 업데이트
         int result = storeMapper.updateStore(seller);
 
-        // 업데이트 성공 여부 확인
-        if (result > 0) {
-            map.put("status", 200);
-            map.put("message", "회원 정보 수정 성공");
-        } else {
-            map.put("status", 400);
-            map.put("message", "회원 정보 수정 실패");
-        }
+            // 업데이트 성공 여부 확인
+            if (result > 0) {
+                map.put("status", 200);
+                map.put("message", "회원 정보 수정 성공");
+            } else {
+                map.put("status", 400);
+                map.put("message", "회원 정보 수정 실패");
+            }
 
-    } catch (Exception e) {
-        e.printStackTrace();
-        map.put("status", -1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("status", -1);
+            map.put("message", "서버 오류");
+        }
+        return map;
     }
-    return map;
-}
 
     // 로그아웃
     // 토큰으로 로그인했으므로 토큰 테이블에서 데이터 삭제 => 로그아웃됨
@@ -333,14 +329,15 @@ public Map<String, Object> updatePUT(@RequestPart("store") Store store,
     }
 
     // 리액트에서 아이디와 암호를 전달해줌 => DB에 있는지 확인 => 토큰 발행
-    // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸 해야함
+    // const body = {"storeId":"a201", "password":"a201"} 키는 dto와 맞추기 값은 DB에 있는 걸
+    // 해야함
     // 127.0.0.1:8080/ROOT/api/seller/login.do
     @PostMapping(value = "/login.do")
-    public Map<String, Object> loginPOST(@RequestBody Store store) {
+    public Map<String, Object> loginPOST(@RequestBody StoreDTO store) {
         Map<String, Object> map = new HashMap<>();
         try {
             // 아이디를 이용해서 아이디와 암호 가져오기
-            Store seller = storeMapper.selectStoreOne(store.getStoreId());
+            StoreDTO seller = storeMapper.selectStoreOne(store.getStoreId());
             map.put("status", 0);
 
             // 사용자가 입력한 암호와 엔코더된 DB 암호 비교
@@ -380,10 +377,8 @@ public Map<String, Object> updatePUT(@RequestPart("store") Store store,
     //"phone":"010-1234-5678", "category":"Fast Food", "startPickup":"08:00", "endPickup":"20:00"}
     //address: "address":"부산광역시 부산진구 중앙대로 681-1" <위도 경도 키워드
     @PostMapping(value = "/join.do", consumes = { "multipart/form-data" })
-public Map<String, Object> joinPOST(
-        @RequestPart("store") Store store,
-        @RequestPart(value = "file", required = false) MultipartFile file,
-        @RequestPart(value = "address", required = false) String address) {
+    public Map<String, Object> joinPOST(@RequestPart("store") StoreDTO store,
+            @RequestPart(value = "file") MultipartFile file) {
 
     Map<String, Object> map = new HashMap<>();
 
