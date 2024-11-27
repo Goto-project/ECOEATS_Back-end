@@ -44,6 +44,18 @@ public class StoreViewRestController {
             Page<StoreView> list = storeViewRepository.findAll(pageRequest);
             long total = storeViewRepository.count();
 
+            // 각 가게에 이미지 URL 추가
+            for (StoreView storeView : list.getContent()) {
+                // storeId로 이미지 조회
+                StoreImage storeImage = storeImageRepository.findByStoreId_StoreId(storeView.getStoreid()); // findByStoreId
+                                                                                                            // 메서드를 가정
+                if (storeImage != null) {
+                    storeView.setImageurl("/ROOT/store/image?no=" + storeImage.getStoreimageNo()); // 이미지 URL 설정
+                } else {
+                    storeView.setImageurl(storeView.getImageurl() + "0"); // 기본 이미지용 번호
+                }
+            }
+
             map.put("status", 200);
             map.put("result", list.getContent());
             map.put("total", total);
