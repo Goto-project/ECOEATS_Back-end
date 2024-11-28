@@ -68,8 +68,8 @@ public class MenuRestController {
         }
 
         // storeId로 Store 객체 조회
-    Store store = storeRepository.findByStoreId(storeId); // StoreRepository에서 Store를 조회합니다.
-    
+        Store store = storeRepository.findByStoreId(storeId); // StoreRepository에서 Store를 조회합니다.
+
         // storeId와 date를 기반으로 DailyMenu 목록 조회
         return dailyMenuRepository.findByMenuNoStoreIdAndRegdate(store, parsedDate);
     }
@@ -77,7 +77,7 @@ public class MenuRestController {
     // 127.0.0.1:8080/ROOT/api/menu/daily/storelist
     // 가게용
     @GetMapping("/daily/storelist")
-    public List<DailyMenu> dailyMenuStoreListGET(
+    public List<Map<String, Object>> dailyMenuStoreListGET(
             @RequestParam String date,
             @RequestHeader(name = "Authorization") String token) {
 
@@ -110,7 +110,26 @@ public class MenuRestController {
         }
 
         // storeId와 date를 기반으로 DailyMenu 목록 조회
-        return dailyMenuRepository.findByMenuNoStoreIdAndRegdate(store, parsedDate);
+        List<DailyMenu> dailyMenus = dailyMenuRepository.findByMenuNoStoreIdAndRegdate(store, parsedDate);
+
+        // 결과를 Map 형태로 변환하여 반환 (Menu 정보 포함)
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (DailyMenu dailyMenu : dailyMenus) {
+            Map<String, Object> menuData = new HashMap<>();
+            menuData.put("dailymenuNo", dailyMenu.getDailymenuNo());
+
+            // Menu 엔티티에서 필요한 정보를 추출
+            Menu menu = dailyMenu.getMenuNo(); // DailyMenu의 Menu 객체 가져오기
+            if (menu != null) {
+                menuData.put("menuName", menu.getName());
+                menuData.put("menuPrice", menu.getPrice());
+                menuData.put("menuImageUrl", menu.getImageurl() + dailyMenu.getDailymenuNo()); // 이미지 URL 설정
+            }
+
+            result.add(menuData);
+        }
+
+        return result;
     }
 
     // 당일 판매 메뉴 삭제
