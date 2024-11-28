@@ -125,7 +125,7 @@ public class MenuRestController {
                 menuData.put("menuPrice", menu.getPrice());
                 menuData.put("menuDiscountedPrice", dailyMenu.getPrice());
                 menuData.put("menuQty", dailyMenu.getQty());
-                menuData.put("menuImageUrl", menu.getImageurl() + dailyMenu.getDailymenuNo()); // 이미지 URL 설정
+                menuData.put("menuImageUrl", menu.getImageurl() + menu.getMenuNo()); // 이미지 URL 설정
             }
 
             result.add(menuData);
