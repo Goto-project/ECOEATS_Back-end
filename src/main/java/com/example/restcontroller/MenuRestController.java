@@ -31,6 +31,7 @@ import com.example.repository.MenuImageRepository;
 import com.example.repository.MenuRepository;
 import com.example.repository.StoreRepository;
 import com.example.token.TokenCreate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -226,12 +227,25 @@ public class MenuRestController {
     // 당일 판매 메뉴 등록
     // 127.0.0.1:8080/ROOT/api/menu/daily/add
     @PostMapping("/daily/add")
-    public Map<String, Object> addDailyMenuPOST(@RequestBody DailyMenuRequestDTO dailyMenuRequest) {
+    public Map<String, Object> addDailyMenuPOST(
+            @RequestBody DailyMenuRequestDTO dailyMenuRequest,
+            @RequestHeader(name = "Authorization") String token) {
 
         Map<String, Object> map = new HashMap<>();
-        List<Integer> menuNos = dailyMenuRequest.getMenuNos();
-
+        // Bearer 접두사를 제거하여 순수 토큰만 전달
+        String rawToken = token.replace("Bearer ", "").trim();
+        
         try {
+            // 토큰 유효성 검사 및 storeId 추출
+            Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+            String storeId = (String) tokenData.get("storeId");
+            if (storeId == null) {
+                map.put("status", 401);
+                map.put("message", "로그인된 사용자 정보가 없습니다.");
+                return map;
+            }
+            
+            List<Integer> menuNos = dailyMenuRequest.getMenuNos();
             List<Integer> successfulMenuNos = new ArrayList<>(); // 성공한 메뉴 번호
             List<Integer> failedMenuNos = new ArrayList<>(); // 실패한 메뉴 번호
             for (Integer menuNo : menuNos) {
@@ -277,7 +291,7 @@ public class MenuRestController {
     // ======가게 전체 메뉴 관리=======
     // 메뉴 추가
     @PostMapping(value = "/add.do", consumes = { "multipart/form-data" })
-    public Map<String, Object> addMenu(@RequestPart("menu") MenuDTO menu,
+    public Map<String, Object> addMenu(@RequestPart("menu") String menuJson,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestHeader(name = "Authorization") String token) {
 
@@ -294,7 +308,11 @@ public class MenuRestController {
                 return map;
             }
 
+            // 메뉴 정보를 JSON 파싱
+            ObjectMapper objectMapper = new ObjectMapper();
+            MenuDTO menu = objectMapper.readValue(menuJson, MenuDTO.class);
             menu.setStoreId(storeId);
+
             int menuResult = menuMapper.insertMenu(menu);
 
             if (menuResult > 0) {
