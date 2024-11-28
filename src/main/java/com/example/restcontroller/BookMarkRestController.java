@@ -19,6 +19,7 @@ import com.example.entity.BookMark;
 import com.example.entity.Store;
 import com.example.entity.StoreView;
 import com.example.repository.BookMarkRepository;
+import com.example.repository.StoreRepository;
 import com.example.repository.StoreViewRepository;
 import com.example.token.TokenCreate;
 
@@ -32,6 +33,7 @@ public class BookMarkRestController {
 
     final BookMarkRepository bookMarkRepository;
     final StoreViewRepository storeViewRepository;
+    final StoreRepository storeRepository;
     final TokenCreate tokenCreate;
 
     // 127.0.0.1:8080/ROOT/api/bookmark/list
