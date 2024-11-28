@@ -60,19 +60,16 @@ public class MenuRestController {
         // 날짜 형식 검증 (yyyy-MM-dd 형식)
         LocalDate parsedDate;
         try {
-            // 날짜를 LocalDate 로 파싱
             parsedDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         } catch (DateTimeParseException e) {
-            // 잘못된 날짜 형식이 들어오면 예외 처리
             throw new IllegalArgumentException("잘못된 날짜 형식입니다. yyyy-MM-dd 형식으로 입력하세요");
         }
 
-        // Store 조회 (storeId 기반)
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스토어입니다."));
-
-        // 해당 store와 date에 맞는 DailyMenu 목록 조회
-        return dailyMenuRepository.findByStoreAndRegdate(store, parsedDate);
+        // storeId로 Store 객체 조회
+    Store store = storeRepository.findByStoreId(storeId); // StoreRepository에서 Store를 조회합니다.
+    
+        // storeId와 date를 기반으로 DailyMenu 목록 조회
+        return dailyMenuRepository.findByMenuNoStoreIdAndRegdate(store, parsedDate);
     }
 
     // 당일 판매 메뉴 삭제
