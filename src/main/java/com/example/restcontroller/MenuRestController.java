@@ -227,12 +227,25 @@ public class MenuRestController {
     // 당일 판매 메뉴 등록
     // 127.0.0.1:8080/ROOT/api/menu/daily/add
     @PostMapping("/daily/add")
-    public Map<String, Object> addDailyMenuPOST(@RequestBody DailyMenuRequestDTO dailyMenuRequest) {
+    public Map<String, Object> addDailyMenuPOST(
+            @RequestBody DailyMenuRequestDTO dailyMenuRequest,
+            @RequestHeader(name = "Authorization") String token) {
 
         Map<String, Object> map = new HashMap<>();
-        List<Integer> menuNos = dailyMenuRequest.getMenuNos();
-
+        // Bearer 접두사를 제거하여 순수 토큰만 전달
+        String rawToken = token.replace("Bearer ", "").trim();
+        
         try {
+            // 토큰 유효성 검사 및 storeId 추출
+            Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+            String storeId = (String) tokenData.get("storeId");
+            if (storeId == null) {
+                map.put("status", 401);
+                map.put("message", "로그인된 사용자 정보가 없습니다.");
+                return map;
+            }
+            
+            List<Integer> menuNos = dailyMenuRequest.getMenuNos();
             List<Integer> successfulMenuNos = new ArrayList<>(); // 성공한 메뉴 번호
             List<Integer> failedMenuNos = new ArrayList<>(); // 실패한 메뉴 번호
             for (Integer menuNo : menuNos) {
