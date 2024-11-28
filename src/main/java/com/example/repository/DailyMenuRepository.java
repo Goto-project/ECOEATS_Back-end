@@ -11,6 +11,6 @@ import com.example.entity.Store;
 
 @Repository
 public interface DailyMenuRepository extends JpaRepository<DailyMenu, Integer>{
-    
-    List<DailyMenu> findByStoreAndRegdate(Store store, LocalDate regdate);
+    // Menu 엔티티를 통해 Store를 찾도록 수정
+    List<DailyMenu> findByMenuNoStoreIdAndRegdate(Store store, LocalDate regdate);
 }
