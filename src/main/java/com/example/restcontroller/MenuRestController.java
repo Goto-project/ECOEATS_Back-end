@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.dto.DailyMenuDTO;
+import com.example.dto.DailyMenuRequestDTO;
 import com.example.dto.MenuDTO;
 import com.example.dto.MenuImageDTO;
 import com.example.entity.DailyMenu;
@@ -160,9 +161,10 @@ public class MenuRestController {
     // 당일 판매 메뉴 등록
     // 127.0.0.1:8080/ROOT/api/menu/daily/add
     @PostMapping("/daily/add")
-    public Map<String, Object> addDailyMenuPOST(@RequestBody List<Integer> menuNos) {
+    public Map<String, Object> addDailyMenuPOST(@RequestBody DailyMenuRequestDTO dailyMenuRequest) {
 
         Map<String, Object> map = new HashMap<>();
+        List<Integer> menuNos = dailyMenuRequest.getMenuNumbers();
 
         try {
             List<Integer> successfulMenuNos = new ArrayList<>(); // 성공한 메뉴 번호
