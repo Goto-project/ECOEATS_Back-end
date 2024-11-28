@@ -164,7 +164,7 @@ public class MenuRestController {
     public Map<String, Object> addDailyMenuPOST(@RequestBody DailyMenuRequestDTO dailyMenuRequest) {
 
         Map<String, Object> map = new HashMap<>();
-        List<Integer> menuNos = dailyMenuRequest.getMenuNumbers();
+        List<Integer> menuNos = dailyMenuRequest.getMenuNos();
 
         try {
             List<Integer> successfulMenuNos = new ArrayList<>(); // 성공한 메뉴 번호

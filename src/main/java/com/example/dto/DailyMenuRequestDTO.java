@@ -6,5 +6,5 @@ import lombok.Data;
 
 @Data
 public class DailyMenuRequestDTO {
-    List<Integer> menuNumbers;
+    List<Integer> menuNos;
 }
