@@ -22,12 +22,14 @@ import com.example.dto.MenuImageDTO;
 import com.example.entity.DailyMenu;
 import com.example.entity.Menu;
 import com.example.entity.MenuImage;
+import com.example.entity.Store;
 import com.example.mapper.DailyMenuMapper;
 import com.example.mapper.MenuImageMapper;
 import com.example.mapper.MenuMapper;
 import com.example.repository.DailyMenuRepository;
 import com.example.repository.MenuImageRepository;
 import com.example.repository.MenuRepository;
+import com.example.repository.StoreRepository;
 import com.example.token.TokenCreate;
 
 import jakarta.transaction.Transactional;
@@ -35,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/menu")
-@CrossOrigin(origins = "http://localhost:3001")
+@CrossOrigin(origins = "http://localhost:3001", allowCredentials = "true")
 @RequiredArgsConstructor
 @Transactional
 public class MenuRestController {
@@ -49,23 +51,28 @@ public class MenuRestController {
     final MenuRepository menuRepository;
     final MenuImageRepository menuImageRepository;
     final DailyMenuRepository dailyMenuRepository;
+    final StoreRepository storeRepository;
 
     // ======당일 판매 메뉴 관리=======
     // 127.0.0.1:8080/ROOT/api/menu/daily/list
     @GetMapping("/daily/list")
-    public List<DailyMenu> dailyMenuListGET(@RequestParam String date) {
+    public List<DailyMenu> dailyMenuListGET(@RequestParam String date, @RequestParam String storeId) {
         // 날짜 형식 검증 (yyyy-MM-dd 형식)
-        LocalDate parsedDate; 
+        LocalDate parsedDate;
         try {
             // 날짜를 LocalDate 로 파싱
             parsedDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        } catch (DateTimeParseException e){
+        } catch (DateTimeParseException e) {
             // 잘못된 날짜 형식이 들어오면 예외 처리
             throw new IllegalArgumentException("잘못된 날짜 형식입니다. yyyy-MM-dd 형식으로 입력하세요");
         }
 
-        // 날짜 형식이 맞으면 해당 날짜의 DailyMenu 목록을 조회
-        return dailyMenuRepository.findByRegdate(parsedDate);
+        // Store 조회 (storeId 기반)
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스토어입니다."));
+
+        // 해당 store와 date에 맞는 DailyMenu 목록 조회
+        return dailyMenuRepository.findByStoreAndRegdate(store, parsedDate);
     }
 
     // 당일 판매 메뉴 삭제
@@ -124,7 +131,7 @@ public class MenuRestController {
                         dailyMenu.setPrice(updatedData.getPrice());
                         updated = true;
                     }
-                    
+
                     if (updatedData.getQty() != 0 && updatedData.getQty() != dailyMenu.getQty()) {
                         dailyMenu.setQty(updatedData.getQty());
                         updated = true;
@@ -385,4 +392,3 @@ public class MenuRestController {
         return map;
     }
 }
-
