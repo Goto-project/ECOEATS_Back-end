@@ -117,15 +117,16 @@ public class MenuRestController {
         for (DailyMenu dailyMenu : dailyMenus) {
             Map<String, Object> menuData = new HashMap<>();
             menuData.put("dailymenuNo", dailyMenu.getDailymenuNo());
-
+            
             // Menu 엔티티에서 필요한 정보를 추출
             Menu menu = dailyMenu.getMenuNo(); // DailyMenu의 Menu 객체 가져오기
             if (menu != null) {
+                MenuImage menuImage = menuImageRepository.findByMenu_menuNo(menu.getMenuNo());
                 menuData.put("menuName", menu.getName());
                 menuData.put("menuPrice", menu.getPrice());
                 menuData.put("menuDiscountedPrice", dailyMenu.getPrice());
                 menuData.put("menuQty", dailyMenu.getQty());
-                menuData.put("menuImageUrl", menu.getImageurl() + menu.getMenuNo()); // 이미지 URL 설정
+                menuData.put("menuImageUrl", menu.getImageurl() + menuImage.getMenuimageNo()); // 이미지 URL 설정
             }
 
             result.add(menuData);
