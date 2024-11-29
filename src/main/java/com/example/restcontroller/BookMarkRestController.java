@@ -40,7 +40,8 @@ public class BookMarkRestController {
 
     // 127.0.0.1:8080/ROOT/api/bookmark/list
     @GetMapping("/list")
-    public List<Map<String, Object>> getBookmarkedStores(@RequestHeader(name = "Authorization") String token) {
+    public Map<String, Object> getBookmarkedStores(@RequestHeader(name = "Authorization") String token) {
+        Map<String, Object> responseMap = new HashMap<>();
         List<Map<String, Object>> resultList = new ArrayList<>();
 
         // Bearer 접두사 제거
@@ -52,22 +53,18 @@ public class BookMarkRestController {
 
             // 이메일이 없는 경우
             if (customerEmail == null) {
-                Map<String, Object> errorMap = new HashMap<>();
-                errorMap.put("status", 401);
-                errorMap.put("message", "로그인된 사용자 정보가 없습니다.");
-                resultList.add(errorMap);
-                return resultList;
+                responseMap.put("status", 401);
+                responseMap.put("message", "로그인된 사용자 정보가 없습니다.");
+                return responseMap;
             }
 
             // 북마크한 가게 목록 조회
             List<BookMark> bookmarks = bookMarkRepository.findByCustomerEmail_CustomerEmail(customerEmail);
 
             if (bookmarks.isEmpty()) {
-                Map<String, Object> errorMap = new HashMap<>();
-                errorMap.put("status", 404);
-                errorMap.put("message", "북마크한 가게가 없습니다.");
-                resultList.add(errorMap);
-                return resultList;
+                responseMap.put("status", 404);
+                responseMap.put("message", "북마크한 가게가 없습니다.");
+                return responseMap;
             }
 
             // 북마크한 가게 정보를 조회하여 리스트에 추가
@@ -76,6 +73,7 @@ public class BookMarkRestController {
 
                 if (storeView != null) {
                     Map<String, Object> storeMap = new HashMap<>();
+                    storeMap.put("storeId", storeView.getStoreid());
                     storeMap.put("storeName", storeView.getStoreName());
                     storeMap.put("address", storeView.getAddress());
                     storeMap.put("phone", storeView.getPhone());
@@ -84,22 +82,21 @@ public class BookMarkRestController {
                     String storeImageNo = (storeView.getStoreimageno() != null) ? storeView.getStoreimageno().toString()
                             : "0";
                     String imageUrl = storeView.getImageurl() + storeImageNo;
-
                     storeMap.put("imageurl", imageUrl);
-                    
-                    storeMap.put("status", 200);
+
                     resultList.add(storeMap);
                 }
             }
 
+            responseMap.put("status", 200);
+            responseMap.put("data", resultList);
+
         } catch (Exception e) {
-            Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("status", -1);
-            errorMap.put("message", "토큰 검증 중 오류가 발생했습니다.");
-            resultList.add(errorMap);
+            responseMap.put("status", -1);
+            responseMap.put("message", "토큰 검증 중 오류가 발생했습니다.");
         }
 
-        return resultList;
+        return responseMap;
     }
 
     // 127.0.0.1:8080/ROOT/api/bookmark/mybookmarks.json
