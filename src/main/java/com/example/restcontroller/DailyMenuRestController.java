@@ -41,7 +41,7 @@ public class DailyMenuRestController {
 
     // 127.0.0.1:8080/ROOT/api/menu/daily/list
     // 고객용
-    @GetMapping("/daily/list")
+    @GetMapping("/list")
     public List<Map<String, Object>> dailyMenuListGET(@RequestParam String date, @RequestParam String storeId) {
         // 날짜 형식 검증 (yyyy-MM-dd 형식)
         LocalDate parsedDate;
