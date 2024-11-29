@@ -1,72 +1,99 @@
 package com.example.restcontroller;
 
+
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
-import com.example.entity.CustomerMember;
-import com.example.service.KakaoLoginService;
+import com.example.dto.CustomerMemberDTO;
+import com.example.dto.CustomerToken;
+import com.example.mapper.CustomerMemberMapper;
+import com.example.mapper.TokenMapper;
+import com.example.token.TokenCreate;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(value = "/api/kakaologin")
 @RequiredArgsConstructor
 public class KakaoLoginRestController {
 
-    private final KakaoLoginService kakaoLoginService;
-    private final String KAKAO_REST_API_KEY = "5dcc181ba43c2d5e19b1632c7b363b3a";
+    final CustomerMemberMapper customerMemberMapper;
+    final TokenCreate tokenCreate;
+    final TokenMapper tokenMapper;
+
+
+
+
+    // 로그인
+    @PostMapping(value = "/login.do")
+    public Map<String, Object> loginPOST(@RequestBody CustomerMemberDTO obj) {
+        Map<String, Object> map = new HashMap<>();
+
+        try {
+            // DB에 저장된 아이디를 이용해 아이디와 비밀번호 불러옴
+            CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(obj.getCustomerEmail());
+            System.out.println(obj);
+            map.put("status", 0);
+
+
+                // 토큰 발행할 데이터
+                System.out.println("Customer Email: " + customerMember.getCustomerEmail());
+                Map<String, Object> claims = new HashMap<>();
+                claims.put("customerEmail", customerMember.getCustomerEmail()); // DB에서 가져온 정보
+                claims.put("customerNickname", customerMember.getNickname()); // DB에서 가져온 닉네임
+                claims.put("customerPhone", customerMember.getPhone());
+
+                System.out.println("Claims for token generation: " + claims);
+
+                // 토큰생성 map1 (아이디, 만료시간)
+                Map<String, Object> map1 = tokenCreate.generateCustomerToken(claims);
+
+                // DB에 추가
+                CustomerToken ct = new CustomerToken();
+                ct.setId(obj.getCustomerEmail());
+                ct.setToken((String) map1.get("token"));
+                ct.setExpiretime((Date) map1.get("expiretime"));
+                tokenMapper.insertCustomerToken(ct);
+
+                map.put("token", map1.get("token"));
+                map.put("status", 200);
+            
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            map.put("status", -1);
+        }
+        return map;
+    }
+
+
+
+
+    // 회원가입
+    @PostMapping(value = "/join.do")
+    public Map<String, Object> joinPOST(@RequestBody CustomerMemberDTO obj) {
+        System.out.println(obj.toString());
+        Map<String, Object> map = new HashMap<>();
+
+        try {
+            obj.setPassword((obj.getPassword()));
+
+            int ret = customerMemberMapper.insertCustomerMemberOne(obj);
+            map.put("status", 0);
+            if (ret == 1) {
+                map.put("status", 200);
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            map.put("stauts", -1);
+        }
+        return map;
+    }
 
     
-
-    /**
-     * 카카오 로그인 처리
-     *
-     * @param data 클라이언트에서 전달받은 데이터 (액세스 토큰 포함)
-     * @return 로그인 결과
-     */
-    @PostMapping("/kakao-login")
-    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, String> data) {
-        String token = data.get("token");
-
-        // Kakao API 호출
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        String requestUrl = "https://kapi.kakao.com/v2/user/me";
-        ResponseEntity<Map> response = restTemplate.exchange(
-            requestUrl,
-            HttpMethod.GET,
-            entity,
-            Map.class
-        );
-
-        // Kakao에서 반환된 사용자 정보 추출
-        Map<String, Object> kakaoAccount = (Map<String, Object>) response.getBody().get("kakao_account");
-        String email = (String) kakaoAccount.get("email");
-        String nickname = (String) ((Map<String, Object>) response.getBody().get("properties")).get("nickname");
-
-        // 토큰 만료 시간 설정
-        Date expireTime = new Date(System.currentTimeMillis() + 1000L * 60 * 60); // 1시간 후
-
-        // 1. 고객 정보 저장 또는 업데이트
-        CustomerMember customer = kakaoLoginService.saveOrUpdateCustomer(email, nickname);
-
-        // 2. 고객 토큰 정보 저장 또는 업데이트
-        kakaoLoginService.saveOrUpdateToken(customer, token, expireTime);
-
-        return ResponseEntity.ok("로그인 성공");
-    }
 }

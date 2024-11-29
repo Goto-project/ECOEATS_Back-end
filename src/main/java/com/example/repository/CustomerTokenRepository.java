@@ -17,5 +17,4 @@ public interface CustomerTokenRepository extends JpaRepository<CustomerToken,Int
     @Modifying
     void deleteByToken(String token);
 
-    Optional<CustomerToken> findById(CustomerMember customerMember);
 }
