@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping(value = "/api/bookmark")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class BookMarkRestController {
 
@@ -84,7 +86,8 @@ public class BookMarkRestController {
                     String imageUrl = storeView.getImageurl() + storeImageNo;
 
                     storeMap.put("imageurl", imageUrl);
-
+                    
+                    storeMap.put("status", 200);
                     resultList.add(storeMap);
                 }
             }
