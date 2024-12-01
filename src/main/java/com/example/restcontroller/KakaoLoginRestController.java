@@ -27,11 +27,12 @@ public class KakaoLoginRestController {
     final TokenCreate tokenCreate;
     final TokenMapper tokenMapper;
 
-
+    
 
 
     // 로그인
-    @PostMapping(value = "/login.do")
+    //127.0.0.1:8080/ROOT/api/kakaologin/login.json
+    @PostMapping(value = "/login.json")
     public Map<String, Object> loginPOST(@RequestBody CustomerMemberDTO obj) {
         Map<String, Object> map = new HashMap<>();
 
@@ -75,7 +76,8 @@ public class KakaoLoginRestController {
 
 
     // 회원가입
-    @PostMapping(value = "/join.do")
+    //127.0.0.1:8080/ROOT/api/kakaologin/join.json
+    @PostMapping(value = "/join.json")
     public Map<String, Object> joinPOST(@RequestBody CustomerMemberDTO obj) {
         System.out.println(obj.toString());
         Map<String, Object> map = new HashMap<>();
