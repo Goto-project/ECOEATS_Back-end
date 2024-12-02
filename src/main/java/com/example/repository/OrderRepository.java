@@ -9,4 +9,6 @@ import com.example.entity.Order;
 public interface OrderRepository extends JpaRepository<Order, String> {
 
     int countByOrdernoStartingWith(String date);
+
+    Order findByOrderno(String orderno);
 }
