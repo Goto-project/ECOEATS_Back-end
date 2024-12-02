@@ -22,6 +22,8 @@ public class Order {
     private LocalDateTime regdate;
     int pay;
 
+    String tid; // 카카오페이 TID 추가
+
     int totalprice;
 
     @ManyToOne
