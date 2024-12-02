@@ -33,6 +33,41 @@ public class StoreViewRestController {
     final ResourceLoader resourceLoader;
     final TokenCreate tokenCreate;
 
+    @GetMapping(value = "/list1")
+    public Map<String, Object> listGET(
+            @RequestParam BigDecimal customerLatitude,
+            @RequestParam BigDecimal customerLongitude,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "distance") String sortBy) {
+
+        Map<String, Object> map = new HashMap<>();
+        try {
+            // 거리, 카테고리, 정렬 기준에 따라 가게 리스트 조회
+            List<StoreView> list = storeViewRepository.findStoresWithinRadius(
+                    customerLatitude, customerLongitude, category, sortBy);
+
+            long total = storeViewRepository.count();
+
+            // 각 가게에 이미지 URL 추가
+            for (StoreView storeView : list) {
+                StoreImage storeImage = storeImageRepository.findByStoreId_StoreId(storeView.getStoreid());
+                if (storeImage != null) {
+                    storeView.setImageurl("/ROOT/store/image?no=" + storeImage.getStoreimageNo());
+                } else {
+                    storeView.setImageurl(storeView.getImageurl() + "0");
+                }
+            }
+
+            map.put("status", 200);
+            map.put("result", list);
+            map.put("total", total);
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("status", -1);
+        }
+        return map;
+    }
+
     // 127.0.0.1:8080/ROOT/api/store/list
     // 전체 가게 리스트 보기
     @GetMapping(value = "/list")
@@ -86,7 +121,8 @@ public class StoreViewRestController {
                 sortBy = "distance"; // 기본값 'distance'로 설정
             }
 
-            List<StoreView> storeViewList = storeViewRepository.findStoresWithinRadius(customerLatitude, customerLongitude, category, sortBy);
+            List<StoreView> storeViewList = storeViewRepository.findStoresWithinRadius(customerLatitude,
+                    customerLongitude, category, sortBy);
 
             // 각 가게에 이미지 URL 추가
             for (StoreView storeView : storeViewList) {

@@ -25,14 +25,17 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
             FROM storedetailview s
             WHERE
                 -- latitude, longitude가 null이 아닌 경우만 처리
-                s.latitude IS NOT NULL AND s.longitude IS NOT NULL
-                AND ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)) <= 1000
+                s.latitude IS NOT NULL 
+                AND s.longitude IS NOT NULL
+                AND ST_Distance_Sphere(
+                    POINT(:customerLongitude, :customerLatitude),
+                    POINT(s.longitude, s.latitude)) 
                 AND (:category IS NULL OR s.category = :category)
             ORDER BY
                 CASE
                     WHEN :sortBy = 'distance' THEN COALESCE(ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)), 0)
                     WHEN :sortBy = 'rating' THEN -COALESCE(s.avgrating, 0)
-                    WHEN :sortBy = 'review' THEN -COALESCE(s.reviewcount, 0)
+                    WHEN :sortBy = 'bookmark' THEN -COALESCE(s.bookmarkcount, 0)
                     ELSE COALESCE(ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)), 0)
                 END
             """, 
