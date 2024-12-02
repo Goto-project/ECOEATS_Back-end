@@ -13,10 +13,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.example.dto.CartRequestDTO;
 import com.example.dto.OrderDTO;
+import com.example.dto.OrderRequestDTO;
 import com.example.entity.Cart;
 import com.example.entity.CustomerMember;
 import com.example.entity.DailyMenu;
@@ -32,6 +35,7 @@ import com.example.repository.MenuRepository;
 import com.example.repository.OrderRepository;
 import com.example.repository.PickupRepository;
 import com.example.repository.StatusRepository;
+import com.example.service.KakaoPayService;
 import com.example.token.TokenCreate;
 
 import lombok.RequiredArgsConstructor;
@@ -51,6 +55,9 @@ public class OrderRestController {
 
     final TokenCreate tokenCreate;
 
+    final KakaoPayService kakaoPayService;
+    final RestTemplate restTemplate;
+
     // 127.0.0.1:8080/ROOT/api/order/cancel
     @PostMapping("/cancel")
     public Map<String, Object> cancelOrder(
@@ -58,7 +65,7 @@ public class OrderRestController {
             @RequestBody OrderDTO orderDTO) {
         Map<String, Object> map = new HashMap<>();
         try {
-            //orderNo를 DTO에서 추출
+            // orderNo를 DTO에서 추출
             String orderNo = orderDTO.getOrderNo();
             System.out.println("orderNo: " + orderNo);
 
@@ -135,7 +142,7 @@ public class OrderRestController {
     @PostMapping("/create")
     public Map<String, Object> createOrderPOST(
             @RequestHeader(name = "Authorization") String token,
-            @RequestBody List<CartRequestDTO> cartRequests) {
+            @RequestBody OrderRequestDTO orderRequest) {
         Map<String, Object> map = new HashMap<>();
         try {
             // Bearer 접두사를 제거하고 토큰만 추출
@@ -162,17 +169,20 @@ public class OrderRestController {
             Order order = new Order();
             order.setOrderno(orderNo); // 생성한 주문 번호 저장
             order.setRegdate(LocalDateTime.now());
-            order.setPay(0);
+            order.setPay(orderRequest.getPay());
             order.setTotalprice(0);
             order.setCustomeremail(customerMember); // 고객 정보 설정
 
             // Store 정보 설정
             // 처음 메뉴 정보에서 그 메뉴와 연결된 Store 찾아서 설정
-            if (!cartRequests.isEmpty()) {
-                int dailyMenuNo = cartRequests.get(0).getDailymenuNo();
-                Optional<Menu> optMenu = menuRepository.findById(dailyMenuNo);
-                if (optMenu.isPresent()) {
-                    Menu menu = optMenu.get();
+            if (!orderRequest.getCartRequests().isEmpty()) {
+                int dailyMenuNo = orderRequest.getCartRequests().get(0).getDailymenuNo();
+                System.out.println("Requested DailyMenuNo: " + dailyMenuNo); // 디버깅용 출력
+                Optional<DailyMenu> optDailyMenu = dailyMenuRepository.findById(dailyMenuNo);
+
+                if (optDailyMenu.isPresent()) {
+                    DailyMenu dailyMenu = optDailyMenu.get();
+                    Menu menu = dailyMenu.getMenuNo(); // DailyMenu에서 Menu 정보를 가져옴
                     Store store = menu.getStoreId(); // 메뉴에서 Store 정보를 가져옴
                     order.setStoreid(store);
                 } else {
@@ -200,7 +210,7 @@ public class OrderRestController {
             int totalPrice = 0;
 
             // 카트 저장
-            for (CartRequestDTO request : cartRequests) {
+            for (CartRequestDTO request : orderRequest.getCartRequests()) {
                 Cart cart = new Cart();
                 cart.setDailymenuNo(new DailyMenu(request.getDailymenuNo()));
                 cart.setQty(request.getQty());
@@ -239,6 +249,12 @@ public class OrderRestController {
             order.setTotalprice(totalPrice);
             orderRepository.save(order);
 
+            if (order.getPay() == 1) { // 카카오페이
+                KakaoPayService kakaoPayService = new KakaoPayService(restTemplate, orderRepository);
+                Map<String, String> kakaoPayResponse = kakaoPayService.kakaoPayReady(order);
+                map.put("paymentUrl", kakaoPayResponse.get("next_redirect_pc_url"));
+            }
+
             map.put("status", 200);
             map.put("message", "주문이 성공적으로 생성되었습니다.");
             map.put("orderId", orderNo);
@@ -249,6 +265,48 @@ public class OrderRestController {
             map.put("status", -1);
             map.put("message", "서버 오류가 발생했습니다.");
         }
+        return map;
+    }
+
+    @PostMapping("/kakaoPaySuccess")
+    public Map<String, Object> kakaoPaySuccess(@RequestParam("orderno") String orderno,
+            @RequestParam("pgToken") String pgToken) {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            // 결제 승인
+            Order order = orderRepository.findByOrderno(orderno);
+            KakaoPayService kakaoPayService = new KakaoPayService(restTemplate, orderRepository);
+            Map<String, String> approvalResponse = kakaoPayService.kakaoPayApprove(order.getTid(), pgToken, order);
+
+            // 결제 승인 처리 후 상태 업데이트
+            order.setPay(1); // 결제 완료 상태
+            orderRepository.save(order);
+
+            map.put("status", 200);
+            map.put("message", "결제가 성공적으로 완료되었습니다.");
+            return map;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("status", -1);
+            map.put("message", "결제 승인에 실패했습니다.");
+        }
+        return map;
+    }
+
+    @PostMapping("/kakaoPayCancel")
+    public Map<String, Object> kakaoPayCancel(@RequestParam("orderno") String orderno) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("status", 400);
+        map.put("message", "결제가 취소되었습니다.");
+        return map;
+    }
+
+    @PostMapping("/kakaoPayFail")
+    public Map<String, Object> kakaoPayFail(@RequestParam("orderno") String orderno) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("status", 400);
+        map.put("message", "결제에 실패했습니다.");
         return map;
     }
 

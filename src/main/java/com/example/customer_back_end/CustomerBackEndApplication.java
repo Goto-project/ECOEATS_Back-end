@@ -16,32 +16,32 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 // @service, @controller, @configuration, @restcontroller, @component ...
 @ComponentScan(basePackages = {
-	"com.example.controller", 
-	"com.example.controller1",
-	"com.example.security", 
-	"com.example.token", 
-	"com.example.restcontroller",
-	"com.example.service"})
+		"com.example.controller",
+		"com.example.controller1",
+		"com.example.security",
+		"com.example.token",
+		"com.example.restcontroller",
+		"com.example.service",
+		"com.example.config" })
 
 // @mapper
 @MapperScan(basePackages = {
-	"com.example.mapper"})
+		"com.example.mapper" })
 
 // @entity
-@EntityScan(basePackages = {"com.example.entity", "com.example.entity1"})
+@EntityScan(basePackages = { "com.example.entity", "com.example.entity1" })
 
 // @repository
-@EnableJpaRepositories(basePackages = {"com.example.repository"})
+@EnableJpaRepositories(basePackages = { "com.example.repository" })
 
-
-
-public class CustomerBackEndApplication extends SpringBootServletInitializer{
+public class CustomerBackEndApplication extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
 		SpringApplication.run(CustomerBackEndApplication.class, args);
 	}
+
 	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder){
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
 		return builder.sources(CustomerBackEndApplication.class);
 	}
 }
