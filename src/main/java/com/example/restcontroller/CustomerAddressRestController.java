@@ -137,8 +137,9 @@ public class CustomerAddressRestController {
         }
         return map;
     }
+    
     @DeleteMapping(value = "/delete.json")
-public Map<String, Object> deleteCustomerAddress(@RequestParam(name = "no") int no, HttpServletRequest request) {
+    public Map<String, Object> deleteCustomerAddress(@RequestParam(name = "no") int no, HttpServletRequest request) {
     Map<String, Object> map = new HashMap<>();
     try {
         // 1. JwtFilter에서 설정된 "customerEmail" 속성 가져오기
