@@ -44,17 +44,6 @@ public class ReviewRestController {
     final ReviewImageRepository reviewImageRepository;
     final ResourceLoader resourceLoader;
 
-
-
-
-
-
-
-
-
-
-
-
 // 127.0.0.1:8080/ROOT/api/review/selectall.json?storeId=a208
     //리뷰 전체보기
     @GetMapping(value = "/selectall.json")
@@ -86,7 +75,6 @@ public class ReviewRestController {
     return map;
     }
 
-
 // 127.0.0.1:8080/ROOT/api/review/myreviews.json
     @GetMapping(value = "/myreviews.json")
     public Map<String, Object> getMyReviews(HttpServletRequest request) {
@@ -112,6 +100,12 @@ public class ReviewRestController {
     
             // 각 리뷰에 이미지 URL 추가
             for (Review review : reviews) {
+                // Review 객체에서 Store 정보 가져오기
+            Store store = review.getStoreId(); // storeId는 Store 객체입니다.
+            if (store != null) {
+                review.setStoreName(store.getStoreName()); // Store 객체에서 가게 이름을 가져와서 저장
+            }
+
                 ReviewImage reviewImage = reviewImageRepository.findByReviewno(review);
                 if (reviewImage != null) {
                     review.setImageurl(review.getImageurl() + reviewImage.getReviewimageNo());
@@ -152,12 +146,12 @@ public class ReviewRestController {
 
 
 
-    @PostMapping(value = "/insert.json")
+    @PostMapping(value = "/insert.json", consumes = { "multipart/form-data" })
     public Map<String, Object> insertPOST(
             @RequestPart(value = "review") Review obj,
             @RequestPart(value = "image", required = false) MultipartFile imageFile,
             HttpServletRequest request) {
-
+        System.out.println(obj.toString());
         //System.out.println(obj.());
         //System.out.println(imageFile.getOriginalFilename());
 
