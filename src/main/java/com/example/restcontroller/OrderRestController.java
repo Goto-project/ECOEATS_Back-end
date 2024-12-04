@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -42,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/order")
 public class OrderRestController {
 
@@ -138,7 +141,51 @@ public class OrderRestController {
         return map;
     }
 
-    // 127.0.0.1:8080/ROOT/api/order/create
+    private void saveOrderDetails(Order order, OrderRequestDTO orderRequest) {
+        // 상태 객체 생성
+        Status status = new Status();
+        status.setOrderno(order);
+        status.setStatus("주문 완료");
+        statusRepository.save(status);
+
+        // 주문 관련된 픽업 객체 생성
+        Pickup pickup = new Pickup();
+        pickup.setOrderno(order);
+        pickup.setPickup(0);
+        pickup.setRegdate(LocalDateTime.now());
+        pickupRepository.save(pickup);
+
+        // 카트 저장
+        int totalPrice = 0;
+        for (CartRequestDTO request : orderRequest.getCartRequests()) {
+            Cart cart = new Cart();
+            cart.setDailymenuNo(new DailyMenu(request.getDailymenuNo()));
+            cart.setQty(request.getQty());
+
+            Optional<DailyMenu> optDailyMenu = dailyMenuRepository.findById(request.getDailymenuNo());
+            if (optDailyMenu.isPresent()) {
+                DailyMenu dailyMenu = optDailyMenu.get();
+
+                // dailymenu의 가격과 주문 수량 곱해서 cart price 계산
+                int menuPrice = dailyMenu.getPrice();
+                cart.setPrice(request.getQty() * menuPrice);
+
+                // 재고 차감
+                dailyMenu.setQty(dailyMenu.getQty() - request.getQty());
+                dailyMenuRepository.save(dailyMenu); // 변경된 재고 저장
+
+                cart.setOrderno(order); // 주문에 카트 연결
+                cartRepository.save(cart); // 저장
+
+                totalPrice += cart.getPrice();
+            }
+        }
+
+        // 총 금액 업데이트
+        order.setTotalprice(totalPrice);
+        orderRepository.save(order);
+    }
+
     @PostMapping("/create")
     public Map<String, Object> createOrderPOST(
             @RequestHeader(name = "Authorization") String token,
@@ -177,13 +224,10 @@ public class OrderRestController {
             // 처음 메뉴 정보에서 그 메뉴와 연결된 Store 찾아서 설정
             if (!orderRequest.getCartRequests().isEmpty()) {
                 int dailyMenuNo = orderRequest.getCartRequests().get(0).getDailymenuNo();
-                System.out.println("Requested DailyMenuNo: " + dailyMenuNo); // 디버깅용 출력
                 Optional<DailyMenu> optDailyMenu = dailyMenuRepository.findById(dailyMenuNo);
 
                 if (optDailyMenu.isPresent()) {
-                    DailyMenu dailyMenu = optDailyMenu.get();
-                    Menu menu = dailyMenu.getMenuNo(); // DailyMenu에서 Menu 정보를 가져옴
-                    Store store = menu.getStoreId(); // 메뉴에서 Store 정보를 가져옴
+                    Store store = optDailyMenu.get().getMenuNo().getStoreId();
                     order.setStoreid(store);
                 } else {
                     map.put("status", 404);
@@ -192,62 +236,55 @@ public class OrderRestController {
                 }
             }
 
-            orderRepository.save(order);
+            boolean hasStockIssue = false;
 
-            // status 객체 생성
-            Status status = new Status();
-            status.setOrderno(order);
-            status.setStatus("주문 완료");
-            statusRepository.save(status);
-
-            // 주문 관련된 pickup 객체 생성
-            Pickup pickup = new Pickup();
-            pickup.setOrderno(order);
-            pickup.setPickup(0);
-            pickup.setRegdate(LocalDateTime.now());
-            pickupRepository.save(pickup);
-
-            int totalPrice = 0;
-
-            // 카트 저장
+            // 먼저 재고를 확인하고, 부족한 경우 전체 주문 취소
             for (CartRequestDTO request : orderRequest.getCartRequests()) {
-                Cart cart = new Cart();
-                cart.setDailymenuNo(new DailyMenu(request.getDailymenuNo()));
-                cart.setQty(request.getQty());
-
                 Optional<DailyMenu> optDailyMenu = dailyMenuRepository.findById(request.getDailymenuNo());
 
                 if (optDailyMenu.isPresent()) {
-                    DailyMenu dailyMenu = optDailyMenu.get();
-
-                    // dailymenu의 가격과 주문 수량 곱해서 cart price 계산
-                    int menuPrice = dailyMenu.getPrice();
-                    cart.setPrice(request.getQty() * menuPrice);
-
-                    // 재고 확인 및 차감
-                    if (dailyMenu.getQty() >= request.getQty()) {
-                        dailyMenu.setQty(dailyMenu.getQty() - request.getQty()); // 수량 차감
-                        dailyMenuRepository.save(dailyMenu); // 변경된 수량 저장
-                    } else {
-                        map.put("status", 400);
-                        map.put("message", "재고가 부족합니다.");
-                        return map;
+                    if (optDailyMenu.get().getQty() < request.getQty()) {
+                        hasStockIssue = true;
+                        break;
                     }
                 } else {
                     map.put("status", 404);
                     map.put("message", "메뉴 정보를 찾을 수 없습니다.");
                     return map;
                 }
-
-                cart.setOrderno(order); // 주문에 카트 연결
-                cartRepository.save(cart); // 저장
-
-                totalPrice += cart.getPrice();
             }
 
-            // 총 금액 업데이트
+            // 재고 부족 시 전체 주문 취소
+            if (hasStockIssue) {
+                map.put("status", 400);
+                map.put("message", "하나 이상의 메뉴에 대해 재고가 부족합니다.");
+                return map;
+            }
+
+            int totalPrice = 0;
+            for (CartRequestDTO request : orderRequest.getCartRequests()) {
+                Optional<DailyMenu> optDailyMenu = dailyMenuRepository.findById(request.getDailymenuNo());
+                if (optDailyMenu.isPresent()) {
+                    DailyMenu dailyMenu = optDailyMenu.get();
+                    totalPrice += request.getQty() * dailyMenu.getPrice();
+                } else {
+                    map.put("status", 404);
+                    map.put("message", "메뉴 정보를 찾을 수 없습니다.");
+                    return map;
+                }
+            }
+
+            // 총 금액을 order 객체에 저장
             order.setTotalprice(totalPrice);
+
             orderRepository.save(order);
+
+            // pay가 0일 경우
+            if (order.getPay() == 0) {
+                order.setTid("none"); // TID를 기본값 설정
+                // 상태, 픽업, 카트 저장
+                saveOrderDetails(order, orderRequest);
+            }
 
             if (order.getPay() == 1) { // 카카오페이
                 KakaoPayService kakaoPayService = new KakaoPayService(restTemplate, orderRepository);
@@ -269,21 +306,26 @@ public class OrderRestController {
     }
 
     @PostMapping("/kakaoPaySuccess")
-    public Map<String, Object> kakaoPaySuccess(@RequestParam("orderno") String orderno,
-            @RequestParam("pgToken") String pgToken) {
+    public Map<String, Object> kakaoPaySuccess(
+            @RequestParam("orderno") String orderno,
+            @RequestParam("pg_token") String pgToken,
+            @RequestBody OrderRequestDTO orderRequest) {
         Map<String, Object> map = new HashMap<>();
         try {
             // 결제 승인
             Order order = orderRepository.findByOrderno(orderno);
             KakaoPayService kakaoPayService = new KakaoPayService(restTemplate, orderRepository);
-            Map<String, String> approvalResponse = kakaoPayService.kakaoPayApprove(order.getTid(), pgToken, order);
 
-            // 결제 승인 처리 후 상태 업데이트
-            order.setPay(1); // 결제 완료 상태
-            orderRepository.save(order);
+            // 결제 승인 처리
+            Map<String, String> approvalResponse = kakaoPayService.kakaoPayApprove(pgToken, orderno);
+
+            // 상태, 픽업, 카트 데이터 저장
+            saveOrderDetails(order, orderRequest);
 
             map.put("status", 200);
             map.put("message", "결제가 성공적으로 완료되었습니다.");
+            map.put("paymentDetails", approvalResponse); // 결제 상세 정보 포함
+            map.put("orderDetails", order); // 주문 정보 포함 가능
             return map;
 
         } catch (Exception e) {
