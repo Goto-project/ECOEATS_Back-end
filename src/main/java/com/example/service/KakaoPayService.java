@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.entity.Order;
+import com.example.entity.Status;
 //import com.example.ourhomepage.config.KakaoPayConfig;
 import com.example.repository.OrderRepository;
 
@@ -57,9 +58,9 @@ public class KakaoPayService {
         params.put("total_amount", order.getTotalprice());
         params.put("tax_free_amount", 0); // 비과세 금액
         params.put("approval_url",
-                "http://localhost:3000/store/show-receipt?orderNo=" + order.getOrderno());
-        params.put("cancel_url", "http://localhost:8080/api/order/kakaoPayCancel");
-        params.put("fail_url", "http://localhost:8080/api/order/kakaoPayFail");
+                "http://localhost:3000/payment/success?orderNo=" + order.getOrderno());
+        params.put("cancel_url", "http://localhost:3000/payment/cancel");
+        params.put("fail_url", "http://localhost:3000/payment/fail");
 
         HttpEntity<Map<String, Object>> body = new HttpEntity<>(params, headers);
 
@@ -76,8 +77,8 @@ public class KakaoPayService {
                 responseBody.put("tid", tid);
                 responseBody.put("next_redirect_pc_url", response.getBody().get("next_redirect_pc_url").toString());
                 responseBody.put("next_redirect_mobile_url",
-                
-                response.getBody().get("next_redirect_mobile_url").toString());
+
+                        response.getBody().get("next_redirect_mobile_url").toString());
 
                 System.out.println(response.getBody().toString());
 
@@ -133,6 +134,55 @@ public class KakaoPayService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to approve payment: " + e.getMessage());
+        }
+    }
+
+    public Map<String, String> kakaoPayCancel(String orderNo) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "SECRET_KEY " + secretKey);
+
+        // 주문 정보를 DB에서 조회
+        Order order = orderRepository.findByOrderno(orderNo);
+        if (order == null) {
+            throw new RuntimeException("주문을 찾을 수 없습니다: " + orderNo);
+        }
+
+        String tid = order.getTid();
+        if (tid == null || tid.isEmpty()) {
+            throw new RuntimeException("카카오페이 결제 TID가 존재하지 않습니다: " + orderNo);
+        }
+
+        // 카카오페이 결제 취소 요청 파라미터 설정
+        Map<String, Object> params = new HashMap<>();
+        params.put("cid", cid);
+        params.put("tid", tid);
+        params.put("cancel_amount", order.getTotalprice());
+        params.put("cancel_tax_free_amount", 0); // 비과세 금액
+
+        HttpEntity<Map<String, Object>> body = new HttpEntity<>(params, headers);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    "https://open-api.kakaopay.com/v1/payment/cancel", HttpMethod.POST, body, Map.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                Map<String, String> responseBody = new HashMap<>();
+                responseBody.put("status", "200");
+                responseBody.put("message", "결제가 성공적으로 취소되었습니다.");
+                responseBody.put("cancel_amount", response.getBody().get("cancel_amount").toString());
+                responseBody.put("tid", tid);
+
+                // DB에서 주문 상태를 '주문 취소'로 업데이트
+                Status cancelStatus = new Status();
+                
+                return responseBody;
+            } else {
+                throw new RuntimeException("카카오페이 결제 취소 실패: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("카카오페이 결제 취소 중 오류 발생: " + e.getMessage());
         }
     }
 
