@@ -1,5 +1,6 @@
 package com.example.restcontroller;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,8 +8,6 @@ import java.util.Map;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,8 +25,8 @@ import com.example.entity.Store;
 import com.example.mapper.StoreImageMapper;
 import com.example.mapper.StoreMapper;
 import com.example.mapper.TokenMapper;
-import com.example.repository.StoreRepository;
 import com.example.repository.StoreTokenRepository;
+import com.example.service.CustomerAddressService;
 import com.example.token.TokenCreate;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +40,7 @@ public class StoreRestController {
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
     final StoreMapper storeMapper;
     final StoreImageMapper storeImageMapper;
+    final CustomerAddressService customerAddressService;
 
     // 토큰 발행 및 검증용 컴포넌트 객체 생성
     final TokenCreate tokenCreate;
@@ -178,94 +178,122 @@ public class StoreRestController {
     // 정보 수정
     // 127.0.0.1:8080/ROOT/api/seller/update.do
     @PutMapping(value = "/update.do", consumes = { "multipart/form-data" })
-    public Map<String, Object> updatePUT(@RequestPart("store") StoreDTO store,
-            @RequestHeader(name = "Authorization") String token,
-            @RequestPart(value = "file", required = false) MultipartFile file) { // file을 required = false로 변경
-        Map<String, Object> map = new HashMap<>();
+public Map<String, Object> updatePUT(@RequestPart("store") Store store,
+        @RequestHeader(name = "Authorization") String token,
+        @RequestPart(value = "file") MultipartFile file) {
+    Map<String, Object> map = new HashMap<>();
 
-        // Bearer 접두사를 제거하여 순수 토큰만 전달
-        String rawToken = token.replace("Bearer ", "").trim();
+    // Bearer 접두사를 제거하여 순수 토큰만 전달
+    String rawToken = token.replace("Bearer ", "").trim();
 
-        try {
-            Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
-            String storeId = (String) tokenData.get("storeId");
-            if (storeId == null) {
-                map.put("status", 401);
-                map.put("message", "로그인된 사용자 정보가 없습니다.");
+    try {
+        Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+        String storeId = (String) tokenData.get("storeId");
+        if (storeId == null) {
+            map.put("status", 401);
+            map.put("message", "로그인된 사용자 정보가 없습니다.");
+            return map;
+        }
+
+        Store seller = storeMapper.selectStoreOne2(storeId);
+
+        seller.setStoreId(storeId);
+
+        if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
+            seller.setStoreName(store.getStoreName());
+        }
+
+        // 입력값이 없을 때 DB에 null이 들어가지 않도록 처리
+        if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
+            seller.setStoreName(store.getStoreName());
+        }
+
+        if (store.getAddress() != null && !store.getAddress().isEmpty()) {
+            seller.setAddress(store.getAddress());
+            
+            // 주소로부터 위도와 경도 가져오기
+            try {
+                // 주소로부터 위도, 경도 가져오기
+                Map<String, BigDecimal> coordinates = customerAddressService.saveCustomerAddress(store.getAddress());
+                seller.setLatitude(coordinates.get("latitude"));
+                seller.setLongitude(coordinates.get("longitude"));
+            } catch (IllegalArgumentException e) {
+                map.put("status", 400);
+                map.put("message", "주소를 찾을 수 없습니다.");
                 return map;
             }
-
-            StoreDTO seller = storeMapper.selectStoreOne(storeId);
-
-            seller.setStoreId(storeId);
-
-            // 가게 정보 업데이트
-            if (store.getStoreName() != null && !store.getStoreName().isEmpty()) {
-                seller.setStoreName(store.getStoreName());
-            }
-
-            if (store.getAddress() != null && !store.getAddress().isEmpty()) {
-                seller.setAddress(store.getAddress());
-            }
-
-            if (store.getPhone() != null && !store.getPhone().isEmpty()) {
-                seller.setPhone(store.getPhone());
-            }
-
-            if (store.getCategory() != null && !store.getCategory().isEmpty()) {
-                seller.setCategory(store.getCategory());
-            }
-
-            if (store.getStartPickup() != null) {
-                seller.setStartPickup(store.getStartPickup());
-            }
-
-            if (store.getEndPickup() != null) {
-                seller.setEndPickup(store.getEndPickup());
-            }
-
-            // 이미지 업데이트 로직 (파일이 있을 경우에만 처리)
-            if (file != null && !file.isEmpty()) {
-                StoreImage storeImage = storeImageMapper.selectStoreImageByStoreId(storeId);
-
-                // 이미지가 있으면 덮어쓰기 로직
-                if (storeImage != null) {
-                    storeImage.setFilename(file.getOriginalFilename());
-                    storeImage.setFiletype(file.getContentType());
-                    storeImage.setFilesize(file.getSize());
-                    storeImage.setFiledata(file.getBytes());
-                    storeImageMapper.updateStoreImage(storeImage); // 이미지 정보 업데이트
-                } else {
-                    // 이미지가 없으면 새로 추가하는 로직
-                    storeImage = new StoreImage();
-                    storeImage.setStoreId(storeId);
-                    storeImage.setFilename(file.getOriginalFilename());
-                    storeImage.setFiletype(file.getContentType());
-                    storeImage.setFilesize(file.getSize());
-                    storeImage.setFiledata(file.getBytes());
-                    storeImageMapper.insertStoreImage(storeImage); // 새 이미지 정보 추가
-                }
-            }
-
-            // 정보 업데이트
-            int result = storeMapper.updateStore(seller);
-
-            // 업데이트 성공 여부 확인
-            if (result > 0) {
-                map.put("status", 200);
-                map.put("message", "회원 정보 수정 성공");
-            } else {
-                map.put("status", 400);
-                map.put("message", "회원 정보 수정 실패");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            map.put("status", -1);
-            map.put("message", "서버 오류");
         }
-        return map;
+
+        if (store.getPhone() != null && !store.getPhone().isEmpty()) {
+            seller.setPhone(store.getPhone());
+        }
+
+        if (store.getCategory() != null && !store.getCategory().isEmpty()) {
+            seller.setCategory(store.getCategory());
+        }
+
+        if (store.getStartPickup() != null) {
+            seller.setStartPickup(store.getStartPickup());
+        }
+
+        if (store.getEndPickup() != null) {
+            seller.setEndPickup(store.getEndPickup());
+        }
+
+        if (store.getLatitude() != null) {
+            seller.setLatitude(store.getLatitude());
+        }
+
+        if (store.getLongitude() != null) {
+            seller.setLongitude(store.getLongitude());
+        }
+
+        // 이미지 업데이트 로직
+        if (file != null && !file.isEmpty()) {
+            // 기존 이미지 삭제
+            System.out.println(storeId);
+            StoreImage storeImage = storeImageMapper.selectStoreImageByStoreId(storeId);
+            // 이미지가 있으면 덮어쓰기 로직
+            if (storeImage != null) {
+                System.out.println(storeImage.getStoreId());
+                System.out.println("storeImage : " + storeImage.getFilename());
+                System.out.println(storeImage.getStoreimageNo());
+                storeImage.setFilename(file.getOriginalFilename());
+                storeImage.setFiletype(file.getContentType());
+                storeImage.setFilesize(file.getSize());
+                storeImage.setFiledata(file.getBytes());
+                storeImageMapper.updateStoreImage(storeImage); // 이미지 정보 업데이트
+
+            } else {
+                // 이미지가 없으면 새로 추가하는 로직
+                storeImage = new StoreImage();
+                storeImage.setStoreId(storeId);
+                storeImage.setFilename(file.getOriginalFilename());
+                storeImage.setFiletype(file.getContentType());
+                storeImage.setFilesize(file.getSize());
+                storeImage.setFiledata(file.getBytes());
+                storeImageMapper.insertStoreImage(storeImage); // 새 이미지 정보 추가
+            }
+        }
+
+        // 정보 업데이트
+        int result = storeMapper.updateStore(seller);
+
+        // 업데이트 성공 여부 확인
+        if (result > 0) {
+            map.put("status", 200);
+            map.put("message", "회원 정보 수정 성공");
+        } else {
+            map.put("status", 400);
+            map.put("message", "회원 정보 수정 실패");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        map.put("status", -1);
     }
+    return map;
+} 
 
     // 로그아웃
     // 토큰으로 로그인했으므로 토큰 테이블에서 데이터 삭제 => 로그아웃됨
@@ -346,54 +374,74 @@ public class StoreRestController {
         }
         return map;
     }
-
+    
     // 회원가입
-    // 127.0.0.1:8080/ROOT/api/seller/join.do
-    // {"storeId":"a201", "storeEmail":"abc@test.com", "password":"a201",
-    // "storeName":"가나다", "address":"서면", "phone":"010", "category":"도시락",
-    // "defaultPickup":"15:30"}
+    //KEY:store{"storeId":"bbq1", "storeEmail":"kfc1@store.com", "password":"1", "storeName":"BBQ Store", "address":"부산광역시 부산진구 중앙대로 681-1", 
+    //"phone":"010-1234-5678", "category":"Fast Food", "startPickup":"08:00", "endPickup":"20:00"}
+    //address: "address":"부산광역시 부산진구 중앙대로 681-1" <위도 경도 키워드
     @PostMapping(value = "/join.do", consumes = { "multipart/form-data" })
-    public Map<String, Object> joinPOST(@RequestPart("store") StoreDTO store,
-            @RequestPart(value = "file") MultipartFile file) {
+public Map<String, Object> joinPOST(
+        @RequestPart("store") Store store,
+        @RequestPart(value = "file", required = false) MultipartFile file,
+        @RequestPart(value = "address", required = false) String address) {
 
-        Map<String, Object> map = new HashMap<>();
+    Map<String, Object> map = new HashMap<>();
 
-        try {
+    try {
+        // 아이디 중복 체크
+        int idExists = storeMapper.checkStoreIdExists(store.getStoreId());
+        if (idExists > 0) {
+            map.put("status", 409); // HTTP 409 Conflict
+            map.put("message", "이미 존재하는 아이디입니다.");
+            return map;
+        }
 
-            // 아이디 중복 체크
-            int idExists = storeMapper.checkStoreIdExists(store.getStoreId());
-            if (idExists > 0) {
-                map.put("status", 409); // HTTP 409 Conflict
-                map.put("message", "이미 존재하는 아이디입니다.");
+        // 주소 처리
+        if (address != null && !address.trim().isEmpty()) {
+            try {
+                Map<String, BigDecimal> coordinates = customerAddressService.saveCustomerAddress(address);
+                store.setLatitude(coordinates.get("latitude"));
+                store.setLongitude(coordinates.get("longitude"));
+            } catch (IllegalArgumentException e) {
+                map.put("status", 400);
+                map.put("message", "유효하지 않은 주소입니다.");
                 return map;
             }
-            // 전달받은 암호에서 암호화하여 obj에 다시 저장하기
-            store.setPassword(bcpe.encode(store.getPassword()));
-            int ret = storeMapper.insertStoreOne(store);
-            map.put("status", 0);
-
-            if (ret == 1) {
-                map.put("status", 200);
-
-                // StoreImage 테이블에 이미지 저장
-                if (file != null && !file.isEmpty()) {
-                    StoreImage storeImage = new StoreImage();
-                    storeImage.setStoreId(store.getStoreId());
-                    storeImage.setFilename(file.getOriginalFilename());
-                    storeImage.setFiletype(file.getContentType());
-                    storeImage.setFilesize(file.getSize());
-                    storeImage.setFiledata(file.getBytes());
-
-                    storeImageMapper.insertStoreImage(storeImage);
-                } else {
-                    map.put("status", 400);
-                }
-            }
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            map.put("status", -1);
         }
-        return map;
+
+        // 비밀번호 암호화
+        store.setPassword(bcpe.encode(store.getPassword()));
+
+        // Store 저장
+        int ret = storeMapper.insertStoreOne(store);
+        if (ret == 1) {
+            map.put("status", 200);
+            map.put("message", "가게 정보가 성공적으로 저장되었습니다.");
+
+            // 이미지 저장
+            if (file != null && !file.isEmpty()) {
+                StoreImage storeImage = new StoreImage();
+                storeImage.setStoreId(store.getStoreId());
+                storeImage.setFilename(file.getOriginalFilename());
+                storeImage.setFiletype(file.getContentType());
+                storeImage.setFilesize(file.getSize());
+                storeImage.setFiledata(file.getBytes());
+
+                storeImageMapper.insertStoreImage(storeImage);
+                map.put("image", "이미지가 성공적으로 저장되었습니다.");
+            }
+        } else {
+            map.put("status", -1);
+            map.put("message", "가게 정보 저장에 실패했습니다.");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        map.put("status", -1);
+        map.put("message", "서버 오류가 발생했습니다.");
     }
+
+    return map;
+}
+
 }
