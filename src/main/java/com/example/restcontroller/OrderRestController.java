@@ -37,6 +37,7 @@ import com.example.repository.MenuRepository;
 import com.example.repository.OrderRepository;
 import com.example.repository.PickupRepository;
 import com.example.repository.StatusRepository;
+import com.example.repository.StoreRepository;
 import com.example.service.KakaoPayService;
 import com.example.token.TokenCreate;
 
@@ -55,6 +56,7 @@ public class OrderRestController {
     final CustomerMemberRepository customerMemberRepository;
     final PickupRepository pickupRepository;
     final StatusRepository statusRepository;
+    final StoreRepository storeRepository;
 
     final TokenCreate tokenCreate;
 
@@ -221,19 +223,13 @@ public class OrderRestController {
             order.setCustomeremail(customerMember); // 고객 정보 설정
 
             // Store 정보 설정
-            // 처음 메뉴 정보에서 그 메뉴와 연결된 Store 찾아서 설정
-            if (!orderRequest.getCartRequests().isEmpty()) {
-                int dailyMenuNo = orderRequest.getCartRequests().get(0).getDailymenuNo();
-                Optional<DailyMenu> optDailyMenu = dailyMenuRepository.findById(dailyMenuNo);
-
-                if (optDailyMenu.isPresent()) {
-                    Store store = optDailyMenu.get().getMenuNo().getStoreId();
-                    order.setStoreid(store);
-                } else {
-                    map.put("status", 404);
-                    map.put("message", "메뉴 정보를 찾을 수 없습니다.");
-                    return map;
-                }
+            Optional<Store> optionalStore = storeRepository.findById(orderRequest.getStoreid());
+            if (optionalStore.isPresent()) {
+                order.setStoreid(optionalStore.get());
+            } else {
+                map.put("status", 404);
+                map.put("message", "가게 정보를 찾을 수 없습니다.");
+                return map;
             }
 
             boolean hasStockIssue = false;
@@ -347,6 +343,7 @@ public class OrderRestController {
     @PostMapping("/kakaoPayFail")
     public Map<String, Object> kakaoPayFail(@RequestParam("orderno") String orderno) {
         Map<String, Object> map = new HashMap<>();
+        orderRepository.findByOrderno(orderno);
         map.put("status", 400);
         map.put("message", "결제에 실패했습니다.");
         return map;
