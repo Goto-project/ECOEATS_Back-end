@@ -72,7 +72,6 @@ public class OrderRestController {
         try {
             // orderNo를 DTO에서 추출
             String orderNo = orderDTO.getOrderNo();
-            System.out.println("orderNo: " + orderNo);
 
             // Bearer 접두사를 제거하고 토큰만 추출
             String rawToken = token.replace("Bearer ", "").trim();
@@ -112,11 +111,30 @@ public class OrderRestController {
                 return map;
             }
 
-            // 주문 상태를 "주문 취소"로 변경
-            Status cancelStatus = new Status();
-            cancelStatus.setOrderno(order);
-            cancelStatus.setStatus("주문 취소");
-            statusRepository.save(cancelStatus);
+            // **pay 값에 따른 처리**
+            if (order.getPay() == 1) {
+                // 카카오페이 결제 취소 로직 호출
+                try {
+                    Map<String, String> kakaoCancelResponse = kakaoPayService.kakaoPayCancel(orderNo);
+                    if (!"200".equals(kakaoCancelResponse.get("status"))) {
+                        map.put("status", 500);
+                        map.put("message", "카카오페이 결제 취소 중 오류가 발생했습니다.");
+                        return map;
+                    }
+                    map.put("kakaoPayResponse", kakaoCancelResponse);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    map.put("status", 500);
+                    map.put("message", "카카오페이 결제 취소 중 오류가 발생했습니다.");
+                    return map;
+                }
+            } else {
+                // 주문 상태를 "주문 취소"로 변경
+                Status cancelStatus = new Status();
+                cancelStatus.setOrderno(order);
+                cancelStatus.setStatus("주문 취소");
+                statusRepository.save(cancelStatus);
+            }
 
             //
 
@@ -283,7 +301,7 @@ public class OrderRestController {
             }
 
             if (order.getPay() == 1) { // 카카오페이
-                KakaoPayService kakaoPayService = new KakaoPayService(restTemplate, orderRepository);
+                KakaoPayService kakaoPayService = new KakaoPayService(restTemplate, orderRepository, statusRepository);
                 Map<String, String> kakaoPayResponse = kakaoPayService.kakaoPayReady(order);
                 map.put("paymentUrl", kakaoPayResponse.get("next_redirect_pc_url"));
             }
@@ -310,7 +328,7 @@ public class OrderRestController {
         try {
             // 결제 승인
             Order order = orderRepository.findByOrderno(orderno);
-            KakaoPayService kakaoPayService = new KakaoPayService(restTemplate, orderRepository);
+            KakaoPayService kakaoPayService = new KakaoPayService(restTemplate, orderRepository, statusRepository);
 
             // 결제 승인 처리
             Map<String, String> approvalResponse = kakaoPayService.kakaoPayApprove(pgToken, orderno);
@@ -332,13 +350,13 @@ public class OrderRestController {
         return map;
     }
 
-    @PostMapping("/kakaoPayCancel")
-    public Map<String, Object> kakaoPayCancel(@RequestParam("orderno") String orderno) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("status", 400);
-        map.put("message", "결제가 취소되었습니다.");
-        return map;
-    }
+    // @PostMapping("/kakaoPayCancel")
+    // public Map<String, Object> kakaoPayCancel(@RequestParam("orderno") String orderno) {
+    //     Map<String, Object> map = new HashMap<>();
+    //     map.put("status", 400);
+    //     map.put("message", "결제가 취소되었습니다.");
+    //     return map;
+    // }
 
     @PostMapping("/kakaoPayFail")
     public Map<String, Object> kakaoPayFail(@RequestParam("orderno") String orderno) {

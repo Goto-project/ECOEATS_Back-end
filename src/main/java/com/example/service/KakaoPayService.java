@@ -11,6 +11,7 @@ import com.example.entity.Order;
 import com.example.entity.Status;
 //import com.example.ourhomepage.config.KakaoPayConfig;
 import com.example.repository.OrderRepository;
+import com.example.repository.StatusRepository;
 
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
@@ -33,6 +34,7 @@ import java.util.Map;
 public class KakaoPayService {
     private final RestTemplate restTemplate;
     private final OrderRepository orderRepository; // OrderRepository 주입 추가
+    private final StatusRepository statusRepository;
 
     private final String KAKAO_PAY_READY_URL = "https://open-api.kakaopay.com/online/v1/payment/ready";
     private final String cid = "TC0ONETIME"; // 테스트용 CID
@@ -40,9 +42,10 @@ public class KakaoPayService {
     @Value("${kakao.api.secret.key}")
     private String secretKey = "DEV977F5D1735A00B9674FD543085B2EBA9929C1";
 
-    public KakaoPayService(RestTemplate restTemplate, OrderRepository orderRepository) {
+    public KakaoPayService(RestTemplate restTemplate, OrderRepository orderRepository, StatusRepository statusRepository) {
         this.restTemplate = restTemplate;
         this.orderRepository = orderRepository;
+        this.statusRepository = statusRepository;
     }
 
     public Map<String, String> kakaoPayReady(Order order) {
@@ -175,6 +178,9 @@ public class KakaoPayService {
 
                 // DB에서 주문 상태를 '주문 취소'로 업데이트
                 Status cancelStatus = new Status();
+                cancelStatus.setOrderno(order);
+                cancelStatus.setStatus("주문 취소");
+                statusRepository.save(cancelStatus);
                 
                 return responseBody;
             } else {
