@@ -78,6 +78,7 @@ public class OrderViewRestController {
                 orderMap.put("unitprice", order.getUnitprice());
                 orderMap.put("pickupstatus", order.getPickupstatus());
                 orderMap.put("pickuptime", order.getPickuptime());
+                orderMap.put("storeid", order.getStoreid());
 
                 resultList.add(orderMap); // 각 주문을 결과 리스트에 추가
             }
