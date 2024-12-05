@@ -8,4 +8,5 @@ import lombok.Data;
 public class OrderRequestDTO {
     int pay;
     List<CartRequestDTO> cartRequests;
+    String storeid;
 }
