@@ -28,14 +28,24 @@
     <div th:if="${menu == 1 }">
         <h5>가게 관리</h5>
         <table border="1">
+            <tr>
+                <th>가게 ID</th>
+                <th>가게 이름</th>
+                <th>이메일</th>
+                <th>전화번호</th>
+                <th>주소</th>
+                <th>카테고리</th>
+                <th>삭제</th>
+            </tr>
             <tr th:each="obj, idx : ${list}">
                 <form th:action="@{/admin/storedelete.do}" method="post" class="form">
                     <td th:text="${obj.storeId}"></td>
-                    <td th:text="${obj.storeName}" name="name"></td>
-                    <td th:text="${obj.storeEmail}" name="email"></td>
-                    <td th:text="${obj.phone}" name="phone"></td>
-                    <td th:text="${obj.address}" name="address"></td>
-                    <td th:text="${obj.category}" name="category"></td>
+                    <td th:text="${obj.storeName}"></td>
+                    <td th:text="${obj.storeEmail}"></td>
+                    <td th:text="${obj.phone}"></td>
+                    <td th:text="${obj.address}"></td>
+                    <td th:text="${obj.category}"></td>
+                    
                     <td>
                         <input type="hidden" name="storeId" th:value="${obj.storeId}" />
                         <button type="button" th:onclick="handleDelete([[${idx.index}]])">삭제</button>
@@ -43,7 +53,7 @@
                 </form>
             </tr>
         </table>
-
+    
         <th:block th:each="page : ${#numbers.sequence(1, pages)}">
             <a th:href="@{/admin/home.do(menu=1,page=${page})}"><button th:text="${page}"></button></a>
         </th:block>
@@ -73,16 +83,19 @@
     <div th:if="${menu == 3}">
         <h5>가게별 리뷰 조회</h5>
         <!-- 가게 선택 -->
-        <form th:action="@{/admin/home}" method="get">
+        <form th:action="@{/admin/home.do}" method="get">
+            <input type="hidden" name="menu" value="3" />
             <label for="storeId">가게 선택:</label>
             <select name="storeId" id="storeId">
                 <option value="" th:selected="${storeId == null}">전체</option>
-                <option th:each="store : ${stores}" th:value="${store.storeId}" th:text="${store.storeName}" 
-                    th:selected="${storeId == store.storeId}"></option>
+                <option th:each="store : ${stores}" 
+                        th:value="${store.storeId}" 
+                        th:text="${store.storeName}"
+                        th:selected="${storeId == store.storeId}"></option>
             </select>
             <button type="submit">조회</button>
         </form>
-
+     
         <!-- 리뷰 목록 테이블 -->
         <table border="1">
             <tr>
@@ -91,18 +104,28 @@
                 <th>평점</th>
                 <th>내용</th>
                 <th>작성일</th>
+                <th>삭제</th>
             </tr>
             <tr th:each="review : ${reviews}">
                 <td th:text="${review.reviewNo}"></td>
-                <td th:text="${review.customerEmail.customerEmail}"></td>
+                <td th:text="${review.customerEmail}"></td>
                 <td th:text="${review.rating}"></td>
                 <td th:text="${review.content}"></td>
                 <td th:text="${review.regdate}"></td>
+                <td>
+                    <form th:action="@{/admin/reviewdelete.do}" method="post">
+                        <input type="hidden" name="reviewNo" th:value="${review.reviewNo}" />
+                        <input type="hidden" name="storeId" th:value="${storeId}" />
+                        <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?');">삭제</button>
+                    </form>
+                </td>
             </tr>
         </table>
-
+    
         <th:block th:each="page : ${#numbers.sequence(1, pages)}">
-            <a th:href="@{/admin/home.do(menu=3,page=${page})}"><button th:text="${page}"></button></a>
+            <a th:href="@{/admin/home.do(menu=3,page=${page},storeId=${storeId})}">
+                <button th:text="${page}"></button>
+            </a>
         </th:block>
     </div>
 
