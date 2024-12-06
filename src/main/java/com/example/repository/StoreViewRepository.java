@@ -41,4 +41,6 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
             """, 
             nativeQuery = true)
     List<StoreView> findStoresWithinRadius(BigDecimal customerLatitude, BigDecimal customerLongitude, String category, String sortBy);
+
+    List<StoreView> findByStoreNameContainingIgnoreCase(String storeName);
 }
