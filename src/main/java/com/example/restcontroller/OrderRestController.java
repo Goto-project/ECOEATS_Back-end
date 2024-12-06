@@ -79,14 +79,11 @@ public Map<String, Object> getMyStoreOrdersToday(
         Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
         String storeId = (String) tokenData.get("storeId");
         
-
         if (storeId == null) {
             map.put("status", 401);
             map.put("message", "유효하지 않은 매장 정보입니다.");
             return map;
-            
         }
-        
 
         // 3. 오늘의 날짜 범위 설정
         LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
@@ -102,7 +99,7 @@ public Map<String, Object> getMyStoreOrdersToday(
     } catch (Exception e) {
         e.printStackTrace();
         map.put("status", -1);
-        map.put("message", "서버 오류가 발생했습니다.");
+        map.put("message", "서버 오류: " + e.getMessage());  // 오류 메시지 추가
     }
 
     return map;
