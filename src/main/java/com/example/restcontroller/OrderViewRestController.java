@@ -2,6 +2,7 @@ package com.example.restcontroller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,136 @@ public class OrderViewRestController {
     final OrderViewRepository orderViewRepository;
     final StoreRepository storeRepository;
     final TokenCreate tokenCreate;
+
+    @GetMapping("/monthlySales")
+    public Map<String, Object> getMonthlySales(
+            @RequestParam String month, // yyyy-MM 형식
+            @RequestHeader(name = "Authorization") String token) {
+
+        Map<String, Object> response = new HashMap<>();
+        String rawToken = token.replace("Bearer ", "").trim();
+
+        try {
+            Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+            String storeId = (String) tokenData.get("storeId");
+
+            if (storeId == null) {
+                response.put("status", 401);
+                response.put("message", "로그인된 매장 정보가 없습니다.");
+                return response;
+            }
+
+            YearMonth yearMonth = YearMonth.parse(month); // yyyy-MM
+            LocalDateTime start = yearMonth.atDay(1).atStartOfDay();
+            LocalDateTime end = yearMonth.atEndOfMonth().atTime(23, 59, 59);
+
+            List<OrderView> orders = orderViewRepository.findByStoreidAndOrdertimeBetween(storeId, start, end);
+
+            Map<String, Integer> dailySales = new HashMap<>();
+            int totalMonthlySales = 0;
+
+            for (OrderView order : orders) {
+                // String orderDate = order.getOrdertime().toLocalDate().toString();
+                // dailySales.put(orderDate, dailySales.getOrDefault(orderDate, 0) +
+                // order.getTotalprice());
+                // totalMonthlySales += order.getTotalprice();
+                // 주문 상태가 "주문 완료"인 경우에만 처리
+                if ("주문 완료".equals(order.getOrderstatus())) {
+                    String orderDate = order.getOrdertime().toLocalDate().toString();
+                    dailySales.put(orderDate, dailySales.getOrDefault(orderDate, 0) + order.getTotalprice());
+                    totalMonthlySales += order.getTotalprice();
+                }
+            }
+
+            response.put("status", 200);
+            response.put("dailySales", dailySales);
+            response.put("totalMonthlySales", totalMonthlySales);
+
+        } catch (Exception e) {
+            response.put("status", -1);
+            response.put("message", "오류 발생");
+        }
+
+        return response;
+    }
+
+    @GetMapping("/datestore")
+    public Map<String, Object> getOrdersByStoreAndDate(
+            @RequestParam String date, // 특정 날짜 (yyyy-MM-dd)
+            @RequestHeader(name = "Authorization") String token) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        // Bearer 접두사를 제거하여 순수 토큰만 전달
+        String rawToken = token.replace("Bearer ", "").trim();
+
+        try {
+            // 토큰 검증 후, 매장 ID 추출
+            Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+            String storeId = (String) tokenData.get("storeId");
+
+            // storeId가 null인 경우
+            if (storeId == null) {
+                response.put("status", 401); // 인증되지 않은 요청
+                response.put("message", "로그인된 매장 정보가 없습니다.");
+                return response;
+            }
+
+            // 날짜 변환
+            LocalDateTime start = LocalDate.parse(date).atStartOfDay(); // 시작일
+            LocalDateTime end = start.plusDays(1).minusSeconds(1); // 해당 날짜의 종료 시간
+
+            // 매장 ID와 날짜에 맞는 주문 내역 조회
+            List<OrderView> orders = orderViewRepository.findByStoreidAndOrdertimeBetween(storeId, start, end);
+
+            // 주문 내역이 없을 경우
+            if (orders.isEmpty()) {
+                response.put("status", 200);
+                response.put("message", "해당 날짜에 해당하는 주문 내역이 없습니다.");
+                return response;
+            }
+
+            // 최신순 정렬
+            orders.sort((o1, o2) -> o2.getOrdertime().compareTo(o1.getOrdertime()));
+
+            // 주문 내역 처리 및 총 가격 계산
+            List<Map<String, Object>> orderList = new ArrayList<>();
+            int totalPrice = 0;
+
+            for (OrderView order : orders) {
+                Map<String, Object> orderMap = new HashMap<>();
+                orderMap.put("ordernumber", order.getOrdernumber());
+                orderMap.put("paymentstatus", order.getPaymentstatus());
+                orderMap.put("totalprice", order.getTotalprice());
+                orderMap.put("orderstatus", order.getOrderstatus());
+                orderMap.put("ordertime", order.getOrdertime());
+                orderMap.put("storename", order.getStorename());
+                orderMap.put("menuname", order.getMenuname());
+                orderMap.put("dailymenuprice", order.getDailymenuprice());
+                orderMap.put("quantity", order.getQuantity());
+                orderMap.put("unitprice", order.getUnitprice());
+                orderMap.put("pickupstatus", order.getPickupstatus());
+                orderMap.put("pickuptime", order.getPickuptime());
+
+                totalPrice += order.getTotalprice();
+                orderList.add(orderMap);
+            }
+
+            // 결과 설정
+            response.put("status", 200);
+            response.put("message", "해당 날짜의 주문 내역 조회 성공");
+            response.put("orders", orderList);
+            response.put("totalPrice", totalPrice);
+
+        } catch (Exception e) {
+            // 예외 처리
+            System.err.println(e.getMessage());
+            response.put("status", -1);
+            response.put("message", "토큰 검증 중 오류가 발생했습니다.");
+        }
+
+        return response;
+    }
 
     // 127.0.0.1:8080/ROOT/api/orderview/list
     @GetMapping("/list")
