@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import com.example.entity.CustomerMember;
 import com.example.entity.DailyMenu;
 import com.example.entity.Menu;
 import com.example.entity.Order;
+import com.example.entity.OrderView;
 import com.example.entity.Pickup;
 import com.example.entity.Status;
 import com.example.entity.Store;
@@ -36,6 +38,7 @@ import com.example.repository.CustomerMemberRepository;
 import com.example.repository.DailyMenuRepository;
 import com.example.repository.MenuRepository;
 import com.example.repository.OrderRepository;
+import com.example.repository.OrderViewRepository;
 import com.example.repository.PickupRepository;
 import com.example.repository.StatusRepository;
 import com.example.repository.StoreRepository;
@@ -59,14 +62,16 @@ public class OrderRestController {
     final PickupRepository pickupRepository;
     final StatusRepository statusRepository;
     final StoreRepository storeRepository;
+    final OrderViewRepository orderViewRepository;
 
     final TokenCreate tokenCreate;
 
     final KakaoPayService kakaoPayService;
     final RestTemplate restTemplate;
 
+
     // 매장별 오늘 주문 목록 조회
-    @GetMapping("/today")
+    @GetMapping("/todaycustmoer")
 public Map<String, Object> getMyStoreOrdersToday(
         @RequestHeader(name = "Authorization") String token) {
     Map<String, Object> map = new HashMap<>();
@@ -103,6 +108,79 @@ public Map<String, Object> getMyStoreOrdersToday(
     }
 
     return map;
+}
+
+
+    // 매장별 오늘 주문 목록 조회
+    @GetMapping("/today")
+public List<Map<String, Object>> getOrdersByStoreToday(@RequestHeader(name = "Authorization") String token) {
+    List<Map<String, Object>> resultList = new ArrayList<>();
+
+    // Bearer 접두사를 제거하여 순수 토큰만 전달
+    String rawToken = token.replace("Bearer ", "").trim();
+
+    try {
+        // 토큰을 검증하고 매장 정보를 가져옵니다.
+        Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+        String storeId = (String) tokenData.get("storeId");
+
+        // 매장 정보가 없을 경우
+        if (storeId == null) {
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put("status", 401); // 인증되지 않은 요청
+            errorMap.put("message", "유효하지 않은 매장 정보입니다.");
+            resultList.add(errorMap); // 에러 정보 추가
+            return resultList;
+        }
+
+        // 오늘 날짜 범위 설정 (orderTime을 기준으로)
+        LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+        LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+
+        // 매장 ID와 오늘 날짜로 주문 조회 (OrderView를 사용)
+        List<OrderView> orders = orderViewRepository.findByStoreidAndOrdertimeBetween(storeId, startOfDay, endOfDay);
+
+        // 주문 내역이 없을 경우
+        if (orders.isEmpty()) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("status", 404);
+            map.put("message", "오늘의 주문 내역이 없습니다.");
+            resultList.add(map); // 결과에 추가
+            return resultList;
+        }
+
+        // 주문 내역이 있을 경우
+        for (OrderView order : orders) {
+            Map<String, Object> orderMap = new HashMap<>();
+            orderMap.put("ordernumber", order.getOrdernumber());
+            orderMap.put("paymentstatus", order.getPaymentstatus());
+            orderMap.put("totalprice", order.getTotalprice());
+            orderMap.put("customeremail", order.getCustomeremail());
+            orderMap.put("orderstatus", order.getOrderstatus());
+            orderMap.put("orderTime", order.getOrdertime());
+            orderMap.put("storename", order.getStorename());
+            orderMap.put("menuname", order.getMenuname());
+            orderMap.put("dailymenuprice", order.getDailymenuprice());
+            orderMap.put("quantity", order.getQuantity());
+            orderMap.put("unitprice", order.getUnitprice());
+            orderMap.put("pickupstatus", order.getPickupstatus());
+            orderMap.put("startpickup", order.getStartpickup());
+            orderMap.put("endpickup", order.getEndpickup());
+            orderMap.put("storeid", order.getStoreid());
+
+            resultList.add(orderMap); // 각 주문을 결과 리스트에 추가
+        }
+
+    } catch (Exception e) {
+        // 예외 처리
+        System.err.println(e.getMessage());
+        Map<String, Object> errorMap = new HashMap<>();
+        errorMap.put("status", -1);
+        errorMap.put("message", "토큰 검증 중 오류가 발생했습니다.");
+        resultList.add(errorMap); // 에러 정보 추가
+    }
+
+    return resultList;
 }
 
 
