@@ -19,4 +19,6 @@ public class CustomerMember {
     String nickname;
 
     String phone;
+
+    boolean isdeleted;
 }
