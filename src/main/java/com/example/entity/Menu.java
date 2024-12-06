@@ -34,4 +34,6 @@ public class Menu {
 
     @Transient
     String imageurl="/ROOT/store/menuimage?no=";
+
+    boolean isdeleted;
 }
