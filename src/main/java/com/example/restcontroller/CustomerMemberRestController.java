@@ -76,7 +76,7 @@ public class CustomerMemberRestController {
     }
 
     // 회원탈퇴
-    @DeleteMapping(value = "/delete.do")
+    @PutMapping(value = "/delete.do")
     public Map<String, Object> deleteDELETE(@RequestHeader(name = "Authorization") String token) {
         Map<String, Object> map = new HashMap<>();
         String rawToken = token.replace("Bearer ", "").trim();
