@@ -56,4 +56,6 @@ public class StoreView {
 
     @Transient
     String imageurl="/ROOT/store/image?no=";
+
+    boolean isdeleted;
 }
