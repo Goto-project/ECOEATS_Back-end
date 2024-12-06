@@ -91,7 +91,7 @@ public class MenuRestController {
         }
 
         // storeId와 date를 기반으로 DailyMenu 목록 조회
-        List<DailyMenu> dailyMenus = dailyMenuRepository.findByMenuNoStoreIdAndRegdate(store, parsedDate);
+        List<DailyMenu> dailyMenus = dailyMenuRepository.findByMenuNoStoreIdAndRegdateAndMenuNoIsdeletedFalse(store, parsedDate);
 
         // 결과를 Map 형태로 변환하여 반환 (Menu 정보 포함)
         List<Map<String, Object>> result = new ArrayList<>();
