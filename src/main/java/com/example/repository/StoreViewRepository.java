@@ -21,7 +21,8 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
                    COALESCE(s.avgrating, 0) AS avgrating,
                    COALESCE(s.bookmarkcount, 0) AS bookmarkcount,
                    COALESCE(s.reviewcount, 0) AS reviewcount,
-                   s.storeimageno
+                   s.storeimageno,
+                   s.isdeleted
             FROM storedetailview s
             WHERE
                 -- latitude, longitude가 null이 아닌 경우만 처리
