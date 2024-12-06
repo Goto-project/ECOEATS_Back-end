@@ -42,8 +42,12 @@ public interface CustomerMemberMapper {
     
 
     //삭제
-    @Delete({"DELETE FROM customer_member WHERE customer_email=#{customerEmail}"})
-        int deleteCustomer(String customerEmail);
+    // @Delete({"DELETE FROM customer_member WHERE customer_email=#{customerEmail}"})
+    //     int deleteCustomer(String customerEmail);
+
+    // 회원 비활성화 (isdeleted를 true로 업데이트)
+    @Update("UPDATE customer_member SET isdeleted = true WHERE customer_email = #{customerEmail}")
+    int deleteCustomer(String customerEmail);
 
     
 }
