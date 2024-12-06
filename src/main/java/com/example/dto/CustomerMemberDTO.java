@@ -15,4 +15,6 @@ public class CustomerMemberDTO {
 
     String role = "CUSTOMER";
 
+    boolean isdeleted; 
+
 }

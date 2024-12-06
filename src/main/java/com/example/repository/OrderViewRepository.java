@@ -23,4 +23,7 @@ public interface OrderViewRepository extends JpaRepository<OrderView, Integer> {
 
      public List<OrderView> findByCustomeremailAndOrdertimeBetween(String customerEmail, LocalDateTime start,
                LocalDateTime end);
+
+     List<OrderView> findByStoreidAndOrdertimeBetween(String storeId, LocalDateTime start, LocalDateTime end);
+
 }

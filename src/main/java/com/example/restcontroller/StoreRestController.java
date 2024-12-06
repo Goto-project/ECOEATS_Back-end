@@ -50,8 +50,8 @@ public class StoreRestController {
 
     // 회원 삭제
     // 127.0.0.1:8080/ROOT/api/seller/delete.do
-    @DeleteMapping(value = "/delete.do")
-    public Map<String, Object> deleteDELETE(@RequestHeader(name = "Authorization") String token) {
+    @PutMapping(value = "/delete.do")
+    public Map<String, Object> deletePUT(@RequestHeader(name = "Authorization") String token) {
         Map<String, Object> map = new HashMap<>();
 
         // Bearer 접두사를 제거하여 순수 토큰만 전달
@@ -75,7 +75,7 @@ public class StoreRestController {
             }
 
             // 회원 삭제 쿼리 실행
-            int result = storeMapper.deleteStore(storeId);
+            int result = storeMapper.updateStoreToDeleted(storeId);
 
             if (result > 0) {
                 map.put("status", 200);
@@ -345,6 +345,19 @@ public Map<String, Object> updatePUT(@RequestPart("store") Store store,
             StoreDTO seller = storeMapper.selectStoreOne(store.getStoreId());
             map.put("status", 0);
 
+            // 사용자가 입력한 아이디가 DB에 존재하지 않거나 삭제된 계정인 경우 처리
+            if (seller == null) {
+                map.put("status", 404);
+                map.put("message", "사용자를 찾을 수 없습니다.");
+                return map;
+            }
+
+            if (seller.isIsdeleted()) { // isdeleted가 true일 경우
+                map.put("status", 403);
+                map.put("message", "삭제된 계정입니다.");
+                return map;
+            }
+
             // 사용자가 입력한 암호와 엔코더된 DB 암호 비교
             // 앞쪽이 사용자가 입력한 내용(암호화x), 뒷쪽이 DB의 암호(암호화o)
             if (bcpe.matches(store.getPassword(), seller.getPassword())) {
@@ -366,6 +379,9 @@ public Map<String, Object> updatePUT(@RequestPart("store") Store store,
                 // 토큰값 전송
                 map.put("token", map1.get("token"));
                 map.put("status", 200);
+            } else {
+                map.put("status", 401); // 비밀번호 불일치
+                map.put("message", "비밀번호가 일치하지 않습니다.");
             }
 
         } catch (Exception e) {

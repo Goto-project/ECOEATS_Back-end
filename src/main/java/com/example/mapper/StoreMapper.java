@@ -77,6 +77,9 @@ public interface StoreMapper {
         @Update("UPDATE store SET password = #{password} WHERE store_id = #{storeId}")
         int updatePassword(StoreDTO store);
 
-        @Delete({ "DELETE FROM store WHERE store_id = #{storeId}" })
-        int deleteStore(String storeId);
+        // @Delete({ "DELETE FROM store WHERE store_id = #{storeId}" })
+        // int deleteStore(String storeId);
+
+        @Update("UPDATE store SET isdeleted = true WHERE store_id = #{storeId}")
+        int updateStoreToDeleted(String storeId);
 }

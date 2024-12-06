@@ -33,6 +33,35 @@ public class StoreViewRestController {
     final ResourceLoader resourceLoader;
     final TokenCreate tokenCreate;
 
+    // 가게 이름으로 검색
+    // 127.0.0.1:8080/ROOT/api/store/search
+    @GetMapping("/search")
+    public Map<String, Object> searchStoresByName(@RequestParam String storeName) {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            // 가게 이름으로 검색
+            List<StoreView> list = storeViewRepository.findByStoreNameContainingIgnoreCase(storeName);
+
+            // 각 가게에 이미지 URL 추가
+            for (StoreView storeView : list) {
+                StoreImage storeImage = storeImageRepository.findByStoreId_StoreId(storeView.getStoreid());
+                if (storeImage != null) {
+                    storeView.setImageurl("/ROOT/store/image?no=" + storeImage.getStoreimageNo());
+                } else {
+                    storeView.setImageurl(storeView.getImageurl() + "0");
+                }
+            }
+
+            map.put("status", 200);
+            map.put("result", list);
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("status", -1);
+            map.put("message", "가게 검색 중 오류가 발생했습니다.");
+        }
+        return map;
+    }
+
     @GetMapping(value = "/list1")
     public Map<String, Object> listGET(
             @RequestParam BigDecimal customerLatitude,
