@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
 @RestController
 @RequestMapping(value = "/api/customer")
 @RequiredArgsConstructor
@@ -49,8 +48,8 @@ public class CustomerMemberRestController {
 
     BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
 
-    //로그아웃
-    //127.0.0.1:8080/ROOT/api/customer/logout.do+
+    // 로그아웃
+    // 127.0.0.1:8080/ROOT/api/customer/logout.do+
     @PostMapping(value = "/logout.do")
     public Map<String, Object> logoutPOST(@RequestHeader(name = "Authorization") String token) {
         Map<String, Object> map = new HashMap<>();
@@ -125,16 +124,16 @@ public class CustomerMemberRestController {
             // 토큰 유효성 검사
             Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
             String customerEmail = (String) tokenData.get("customerEmail");
-    
+
             if (customerEmail == null) {
                 map.put("status", 401);
                 map.put("message", "유효하지 않은 사용자입니다.");
                 return map;
             }
-    
+
             // 이메일을 기반으로 사용자 정보를 조회
             CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
-    
+
             if (customerMember != null) {
                 map.put("customerEmail", customerMember.getCustomerEmail());
                 map.put("nickname", customerMember.getNickname());
@@ -151,7 +150,6 @@ public class CustomerMemberRestController {
         }
         return map;
     }
-    
 
     // 정보수정(닉네임, 핸드폰)
     @PutMapping(value = "/update.do")
@@ -168,10 +166,10 @@ public class CustomerMemberRestController {
             // DB에서
             CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(customerEmail);
 
-            if(customerMember ==null){ 
+            if (customerMember == null) {
                 map.put("status", 403);
-            map.put("message", "권한이 없습니다. 유효하지 않은 사용자입니다.");
-            return map;
+                map.put("message", "권한이 없습니다. 유효하지 않은 사용자입니다.");
+                return map;
             }
 
             // 3. 업데이트할 필드 설정 (닉네임과 핸드폰 번호 비밀번호만 변경 가능)
@@ -287,6 +285,7 @@ public class CustomerMemberRestController {
     }
 
     // 로그인
+    // 127.0.0.1:8080/ROOT/api/customer/login.do
     @PostMapping(value = "/login.do")
     public Map<String, Object> loginPOST(@RequestBody CustomerMemberDTO obj) {
         Map<String, Object> map = new HashMap<>();
@@ -296,6 +295,19 @@ public class CustomerMemberRestController {
             CustomerMemberDTO customerMember = customerMemberMapper.selectCustomerMemberOne(obj.getCustomerEmail());
             System.out.println(obj);
             map.put("status", 0);
+
+            // 사용자가 존재하지 않거나 삭제된 회원인 경우 처리
+            if (customerMember == null) {
+                map.put("status", 404);
+                map.put("message", "사용자를 찾을 수 없습니다.");
+                return map;
+            }
+
+            if (customerMember.isIsdeleted()) {
+                map.put("status", 403);
+                map.put("message", "삭제된 계정입니다.");
+                return map;
+            }
 
             // 사용자가 입력한 암호와, DB의 암호 비교
             if (bcpe.matches(obj.getPassword(), customerMember.getPassword())) {
@@ -321,6 +333,9 @@ public class CustomerMemberRestController {
 
                 map.put("token", map1.get("token"));
                 map.put("status", 200);
+            } else {
+                map.put("status", 401); // 비밀번호 불일치
+                map.put("message", "비밀번호가 일치하지 않습니다.");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
