@@ -167,7 +167,7 @@ public class KakaoPayService {
 
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
-                    "https://open-api.kakaopay.com/v1/payment/cancel", HttpMethod.POST, body, Map.class);
+                    "https://open-api.kakaopay.com/online/v1/payment/cancel", HttpMethod.POST, body, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 Map<String, String> responseBody = new HashMap<>();
