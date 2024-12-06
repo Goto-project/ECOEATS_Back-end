@@ -35,4 +35,6 @@ public class StoreDTO {
 
     @Transient
     String role = "SELLER";
+
+    boolean isdeleted;
 }
