@@ -11,4 +11,6 @@ import com.example.entity.Menu;
 public interface MenuRepository extends JpaRepository<Menu, Integer>{
 
     List<Menu> findByStoreId_StoreId(String storeId);
+
+    List<Menu> findByStoreId_StoreIdAndIsdeletedFalse(String storeId);
 }
