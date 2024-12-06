@@ -423,7 +423,7 @@ public class MenuRestController {
 
             System.out.println("Store ID: " + storeId);
             // 메뉴 리스트 조회
-            List<com.example.entity.Menu> menuList = menuRepository.findByStoreId_StoreId(storeId);
+            List<com.example.entity.Menu> menuList = menuRepository.findByStoreId_StoreIdAndIsdeletedFalse(storeId);
             System.out.println("Menu List Size: " + menuList.size());
 
             // 각 메뉴에 이미지 URL 추가
