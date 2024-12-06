@@ -45,7 +45,10 @@ public interface MenuMapper {
         int updateMenuImage(MenuImageDTO menuImage);
 
         // 메뉴 삭제
-        @Delete("DELETE FROM menu WHERE menu_no = #{menuNo}")
+        // @Delete("DELETE FROM menu WHERE menu_no = #{menuNo}")
+        // int deleteMenu(int menuNo);
+
+        @Update("UPDATE menu SET isdeleted = TRUE WHERE menu_no = #{menuNo}")
         int deleteMenu(int menuNo);
 
         // 메뉴 이미지 삭제

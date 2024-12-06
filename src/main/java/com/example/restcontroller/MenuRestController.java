@@ -329,7 +329,7 @@ public class MenuRestController {
     }
 
     // 메뉴 삭제
-    @DeleteMapping("/delete/{menuNo}")
+    @PutMapping("/delete/{menuNo}")
     public Map<String, Object> deleteMenu(@PathVariable("menuNo") int menuNo) {
         Map<String, Object> map = new HashMap<>();
 
