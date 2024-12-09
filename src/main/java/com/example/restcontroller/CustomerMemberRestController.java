@@ -344,6 +344,28 @@ public class CustomerMemberRestController {
         return map;
     }
 
+    // 127.0.0.1:8080/ROOT/api/customer/checkemail
+    @GetMapping("/checkemail")
+    public Map<String, Object> checkEmailGET(@RequestParam String customerEmail){
+        boolean isDuplicate = customerMemberRepository.existsByCustomerEmail(customerEmail);
+        Map<String, Object> map = new HashMap<>();
+
+        try {
+            if (!isDuplicate) {
+                map.put("status", 200);
+                map.put("message", "사용 가능한 이메일입니다.");
+            } else {
+                map.put("status", 0);
+                map.put("message", "이미 사용 중인 이메일입니다.");
+            }
+
+        } catch (Exception e){
+            System.err.println(e.getMessage());
+            map.put("stauts", -1);
+        }
+        return map;
+    }
+
     // 회원가입
     @PostMapping(value = "/join.do")
     public Map<String, Object> joinPOST(@RequestBody CustomerMemberDTO obj) {

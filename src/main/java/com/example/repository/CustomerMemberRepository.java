@@ -17,4 +17,6 @@ public interface CustomerMemberRepository extends JpaRepository<CustomerMember, 
 
     //페이지네이션에서 사용할 전체 개수
     long countByCustomerEmailContaining(String customerEmail);
+
+    boolean existsByCustomerEmail(String customerEmail);
 }
