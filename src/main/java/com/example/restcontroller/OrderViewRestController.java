@@ -194,6 +194,8 @@ public class OrderViewRestController {
                 return resultList;
             }
 
+            orders.sort((o1, o2) -> o2.getOrdertime().compareTo(o1.getOrdertime()));
+            
             // 주문 내역이 있을 경우
             for (OrderView order : orders) {
                 Map<String, Object> orderMap = new HashMap<>();
