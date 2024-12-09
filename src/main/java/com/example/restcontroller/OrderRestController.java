@@ -71,47 +71,6 @@ public class OrderRestController {
 
 
     // 매장별 오늘 주문 목록 조회
-    @GetMapping("/todaycustmoer")
-public Map<String, Object> getMyStoreOrdersToday(
-        @RequestHeader(name = "Authorization") String token) {
-    Map<String, Object> map = new HashMap<>();
-
-    try {
-        // 1. Bearer 토큰 처리
-        String rawToken = token.replace("Bearer ", "").trim();
-
-        // 2. 토큰 유효성 검증 및 사용자 정보 추출
-        Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
-        String storeId = (String) tokenData.get("storeId");
-        
-        if (storeId == null) {
-            map.put("status", 401);
-            map.put("message", "유효하지 않은 매장 정보입니다.");
-            return map;
-        }
-
-        // 3. 오늘의 날짜 범위 설정
-        LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
-        LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
-
-        // 4. 매장 ID와 오늘 날짜로 주문 조회
-        List<Order> orders = orderRepository.findByStoreid_StoreIdAndRegdateBetween(storeId, startOfDay, endOfDay);
-
-        // 5. 응답 구성
-        map.put("status", 200);
-        map.put("message", "성공적으로 조회되었습니다.");
-        map.put("orders", orders);
-    } catch (Exception e) {
-        e.printStackTrace();
-        map.put("status", -1);
-        map.put("message", "서버 오류: " + e.getMessage());  // 오류 메시지 추가
-    }
-
-    return map;
-}
-
-
-    // 매장별 오늘 주문 목록 조회
     @GetMapping("/today")
 public List<Map<String, Object>> getOrdersByStoreToday(@RequestHeader(name = "Authorization") String token) {
     List<Map<String, Object>> resultList = new ArrayList<>();
@@ -145,7 +104,7 @@ public List<Map<String, Object>> getOrdersByStoreToday(@RequestHeader(name = "Au
             Map<String, Object> map = new HashMap<>();
             map.put("status", 404);
             map.put("message", "오늘의 주문 내역이 없습니다.");
-            resultList.add(map); // 결과에 추가
+            // resultList.add(map); // 결과에 추가
             return resultList;
         }
 
