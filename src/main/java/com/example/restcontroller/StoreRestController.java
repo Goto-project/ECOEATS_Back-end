@@ -394,15 +394,13 @@ public Map<String, Object> updatePUT(@RequestPart("store") Store store,
     // 회원가입
     //KEY:store{"storeId":"bbq1", "storeEmail":"kfc1@store.com", "password":"1", "storeName":"BBQ Store", "address":"부산광역시 부산진구 중앙대로 681-1", 
     //"phone":"010-1234-5678", "category":"Fast Food", "startPickup":"08:00", "endPickup":"20:00"}
-    //address: "address":"부산광역시 부산진구 중앙대로 681-1" <위도 경도 키워드
-    @PostMapping(value = "/join.do", consumes = { "multipart/form-data" })
+    //coordinate: "address":"부산광역시 부산진구 중앙대로 681-1" <위도 경도 키워드
+    @PostMapping(value = "/join.do", consumes = { "multipart/form-data" }) 
 public Map<String, Object> joinPOST(
-        @RequestPart("store") Store store,
-        @RequestPart(value = "file", required = false) MultipartFile file,
-        @RequestPart(value = "address", required = false) String address) {
-
+    @RequestPart("store") Store store,
+    @RequestPart(value = "file", required = false) MultipartFile file) {
+    
     Map<String, Object> map = new HashMap<>();
-
     try {
         // 아이디 중복 체크
         int idExists = storeMapper.checkStoreIdExists(store.getStoreId());
@@ -412,10 +410,10 @@ public Map<String, Object> joinPOST(
             return map;
         }
 
-        // 주소 처리
-        if (address != null && !address.trim().isEmpty()) {
+        // 주소 처리 (store의 address로 좌표 변환)
+        if (store.getAddress() != null && !store.getAddress().trim().isEmpty()) {
             try {
-                Map<String, BigDecimal> coordinates = customerAddressService.saveCustomerAddress(address);
+                Map<String, BigDecimal> coordinates = customerAddressService.saveCustomerAddress(store.getAddress());
                 store.setLatitude(coordinates.get("latitude"));
                 store.setLongitude(coordinates.get("longitude"));
             } catch (IllegalArgumentException e) {
@@ -450,7 +448,6 @@ public Map<String, Object> joinPOST(
             map.put("status", -1);
             map.put("message", "가게 정보 저장에 실패했습니다.");
         }
-
     } catch (Exception e) {
         e.printStackTrace();
         map.put("status", -1);
