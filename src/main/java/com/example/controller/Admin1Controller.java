@@ -4,10 +4,15 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.entity.CustomerMember;
 import com.example.entity.Review;
@@ -16,11 +21,8 @@ import com.example.repository.CustomerMemberRepository;
 import com.example.repository.ReviewRepository;
 import com.example.repository.StoreRepository;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
@@ -70,30 +72,40 @@ public class Admin1Controller {
             model.addAttribute("pages", (total - 1) / 10 + 1);
 
         } else if (menu == 3) {
-            // 가게별 리뷰 조회
-            System.out.println("storeId: " + storeId); // storeId 값을 확인
-
+            // 가게 정보 가져오기
+            List<Store> stores = storeRepository.findAll(); // 가게 목록 조회
+            model.addAttribute("stores", stores);
+        
+            // 페이지 요청 객체 생성
+            Pageable pageRequest1 = PageRequest.of(page - 1, 10, Sort.by(Sort.Direction.DESC, "regdate"));
+        
             if (storeId != null && !storeId.isEmpty()) {
-                Page<Review> reviewPage = reviewRepository.findReviewsByStoreId(storeId, pageRequest);
-
-                List<Review> reviews = reviewPage.getContent();
-                long totalReviews = reviewPage.getTotalElements();
-
-                model.addAttribute("storeId", storeId);
-                model.addAttribute("reviews", reviews);
-                model.addAttribute("totalReviews", totalReviews);
+                // Store 객체로 변환 필요
+                Store store = storeRepository.findById(storeId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 가게를 찾을 수 없습니다."));
+                
+                // Store 객체를 사용하여 리뷰 조회
+                Page<Review> reviewPage = reviewRepository.findReviewsByStoreId(store, pageRequest1);
+                
+                model.addAttribute("reviews", reviewPage.getContent());
+                model.addAttribute("totalReviews", reviewPage.getTotalElements());
+                model.addAttribute("pages", reviewPage.getTotalPages());
             } else {
-                Page<Review> reviewPage = reviewRepository.findAll(pageRequest);
-
-                List<Review> reviews = reviewPage.getContent();
-                long totalReviews = reviewPage.getTotalElements();
-
-                model.addAttribute("reviews", reviews);
-                model.addAttribute("totalReviews", totalReviews);
+                // 기존 전체 리뷰 조회 로직 유지
+                Page<Review> reviewPage = reviewRepository.findAll(pageRequest1);
+                model.addAttribute("reviews", reviewPage.getContent());
+                model.addAttribute("totalReviews", reviewPage.getTotalElements());
+                model.addAttribute("pages", reviewPage.getTotalPages());
             }
+        
+            model.addAttribute("storeId", storeId); // 선택된 가게 ID
+            model.addAttribute("menu", menu); // 현재 메뉴 설정
+            return "admin/adminhome";
         }
-        return "admin/adminhome"; // 관리자 페이지로 이동
-    }
+
+    model.addAttribute("menu", menu); // 현재 메뉴 설정
+    return "admin/adminhome"; // 뷰 파일 경로
+}
 
     @PostMapping(value = "/storedelete.do")
     public String storeDeletePOST(@RequestParam(name = "storeId") String storeId) {
@@ -110,9 +122,20 @@ public class Admin1Controller {
     }
 
     @PostMapping(value = "/reviewdelete.do")
-    public String reviewDeletePOST(@RequestParam(name = "reviewNo") int reviewNo) {
-        reviewRepository.deleteById(reviewNo);
-
-        return "redirect:/admin/home.do?menu=3";
+public String reviewDeletePOST(
+    @RequestParam(name = "reviewNo") int reviewNo,
+    @RequestParam(name = "storeId", required = false) String storeId,
+    RedirectAttributes redirectAttributes
+) {
+    // 리뷰 삭제
+    reviewRepository.deleteById(reviewNo);
+    
+    // 리다이렉트 시 상태 유지
+    redirectAttributes.addAttribute("menu", 3);
+    if (storeId != null && !storeId.isEmpty()) {
+        redirectAttributes.addAttribute("storeId", storeId);
     }
+    
+    return "redirect:/admin/home.do";
+}
 }

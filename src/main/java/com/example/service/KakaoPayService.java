@@ -168,20 +168,24 @@ public class KakaoPayService {
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
                     "https://open-api.kakaopay.com/online/v1/payment/cancel", HttpMethod.POST, body, Map.class);
-
+    
             if (response.getStatusCode().is2xxSuccessful()) {
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("status", "200");
                 responseBody.put("message", "결제가 성공적으로 취소되었습니다.");
-                responseBody.put("cancel_amount", response.getBody().get("cancel_amount").toString());
+    
+                // cancel_amount 키의 값을 안전하게 가져오기
+                String cancelAmount = String.valueOf(response.getBody().get("cancel_amount"));
+                responseBody.put("cancel_amount", cancelAmount);
+    
                 responseBody.put("tid", tid);
-
+    
                 // DB에서 주문 상태를 '주문 취소'로 업데이트
                 Status cancelStatus = new Status();
                 cancelStatus.setOrderno(order);
                 cancelStatus.setStatus("주문 취소");
                 statusRepository.save(cancelStatus);
-                
+    
                 return responseBody;
             } else {
                 throw new RuntimeException("카카오페이 결제 취소 실패: " + response.getStatusCode());

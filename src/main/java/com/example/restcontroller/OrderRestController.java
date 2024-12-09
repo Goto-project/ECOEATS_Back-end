@@ -2,7 +2,9 @@ package com.example.restcontroller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import com.example.entity.CustomerMember;
 import com.example.entity.DailyMenu;
 import com.example.entity.Menu;
 import com.example.entity.Order;
+import com.example.entity.OrderView;
 import com.example.entity.Pickup;
 import com.example.entity.Status;
 import com.example.entity.Store;
@@ -35,12 +38,14 @@ import com.example.repository.CustomerMemberRepository;
 import com.example.repository.DailyMenuRepository;
 import com.example.repository.MenuRepository;
 import com.example.repository.OrderRepository;
+import com.example.repository.OrderViewRepository;
 import com.example.repository.PickupRepository;
 import com.example.repository.StatusRepository;
 import com.example.repository.StoreRepository;
 import com.example.service.KakaoPayService;
 import com.example.token.TokenCreate;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -57,11 +62,220 @@ public class OrderRestController {
     final PickupRepository pickupRepository;
     final StatusRepository statusRepository;
     final StoreRepository storeRepository;
+    final OrderViewRepository orderViewRepository;
 
     final TokenCreate tokenCreate;
 
     final KakaoPayService kakaoPayService;
     final RestTemplate restTemplate;
+
+
+    // 매장별 오늘 주문 목록 조회
+    @GetMapping("/todaycustmoer")
+public Map<String, Object> getMyStoreOrdersToday(
+        @RequestHeader(name = "Authorization") String token) {
+    Map<String, Object> map = new HashMap<>();
+
+    try {
+        // 1. Bearer 토큰 처리
+        String rawToken = token.replace("Bearer ", "").trim();
+
+        // 2. 토큰 유효성 검증 및 사용자 정보 추출
+        Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+        String storeId = (String) tokenData.get("storeId");
+        
+        if (storeId == null) {
+            map.put("status", 401);
+            map.put("message", "유효하지 않은 매장 정보입니다.");
+            return map;
+        }
+
+        // 3. 오늘의 날짜 범위 설정
+        LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+        LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+
+        // 4. 매장 ID와 오늘 날짜로 주문 조회
+        List<Order> orders = orderRepository.findByStoreid_StoreIdAndRegdateBetween(storeId, startOfDay, endOfDay);
+
+        // 5. 응답 구성
+        map.put("status", 200);
+        map.put("message", "성공적으로 조회되었습니다.");
+        map.put("orders", orders);
+    } catch (Exception e) {
+        e.printStackTrace();
+        map.put("status", -1);
+        map.put("message", "서버 오류: " + e.getMessage());  // 오류 메시지 추가
+    }
+
+    return map;
+}
+
+
+    // 매장별 오늘 주문 목록 조회
+    @GetMapping("/today")
+public List<Map<String, Object>> getOrdersByStoreToday(@RequestHeader(name = "Authorization") String token) {
+    List<Map<String, Object>> resultList = new ArrayList<>();
+
+    // Bearer 접두사를 제거하여 순수 토큰만 전달
+    String rawToken = token.replace("Bearer ", "").trim();
+
+    try {
+        // 토큰을 검증하고 매장 정보를 가져옵니다.
+        Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+        String storeId = (String) tokenData.get("storeId");
+
+        // 매장 정보가 없을 경우
+        if (storeId == null) {
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put("status", 401); // 인증되지 않은 요청
+            errorMap.put("message", "유효하지 않은 매장 정보입니다.");
+            resultList.add(errorMap); // 에러 정보 추가
+            return resultList;
+        }
+
+        // 오늘 날짜 범위 설정 (orderTime을 기준으로)
+        LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+        LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+
+        // 매장 ID와 오늘 날짜로 주문 조회 (OrderView를 사용)
+        List<OrderView> orders = orderViewRepository.findByStoreidAndOrdertimeBetween(storeId, startOfDay, endOfDay);
+
+        // 주문 내역이 없을 경우
+        if (orders.isEmpty()) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("status", 404);
+            map.put("message", "오늘의 주문 내역이 없습니다.");
+            resultList.add(map); // 결과에 추가
+            return resultList;
+        }
+
+        // 주문 내역이 있을 경우
+        for (OrderView order : orders) {
+            Map<String, Object> orderMap = new HashMap<>();
+            orderMap.put("ordernumber", order.getOrdernumber());
+            orderMap.put("paymentstatus", order.getPaymentstatus());
+            orderMap.put("totalprice", order.getTotalprice());
+            orderMap.put("customeremail", order.getCustomeremail());
+            orderMap.put("orderstatus", order.getOrderstatus());
+            orderMap.put("orderTime", order.getOrdertime());
+            orderMap.put("storename", order.getStorename());
+            orderMap.put("menuname", order.getMenuname());
+            orderMap.put("dailymenuprice", order.getDailymenuprice());
+            orderMap.put("quantity", order.getQuantity());
+            orderMap.put("unitprice", order.getUnitprice());
+            orderMap.put("pickupstatus", order.getPickupstatus());
+            orderMap.put("startpickup", order.getStartpickup());
+            orderMap.put("endpickup", order.getEndpickup());
+            orderMap.put("storeid", order.getStoreid());
+
+            resultList.add(orderMap); // 각 주문을 결과 리스트에 추가
+        }
+
+    } catch (Exception e) {
+        // 예외 처리
+        System.err.println(e.getMessage());
+        Map<String, Object> errorMap = new HashMap<>();
+        errorMap.put("status", -1);
+        errorMap.put("message", "토큰 검증 중 오류가 발생했습니다.");
+        resultList.add(errorMap); // 에러 정보 추가
+    }
+
+    return resultList;
+}
+
+
+
+
+    // 127.0.0.1:8080/ROOT/api/order/sellercancel
+    @PostMapping("/sellercancel")
+    public Map<String, Object> sellercancelOrder(
+        @RequestHeader(name = "Authorization") String token,
+        @RequestBody OrderDTO orderDTO) {
+            Map<String, Object> map = new HashMap<>();
+            try {
+                // orderNo를 DTO에서 추출
+                String orderNo = orderDTO.getOrderNo();
+        
+                // Bearer 접두사를 제거하고 토큰만 추출
+                String rawToken = token.replace("Bearer ", "").trim();
+                // 토큰 유효성 검사
+                Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
+                String storeId = (String) tokenData.get("storeId");
+        
+                if (storeId == null) {
+                    map.put("status", 401);
+                    map.put("message", "유효하지 않은 사용자입니다.");
+                    return map;
+                }
+        
+                // 주문을 찾기
+                Optional<Order> optionalOrder = orderRepository.findById(orderNo);
+                if (!optionalOrder.isPresent()) {
+                    map.put("status", 404);
+                    map.put("message", "주문을 찾을 수 없습니다.");
+                    return map;
+                }
+        
+                Order order = optionalOrder.get();
+        
+                // 주문의 가게(storeid)와 로그인한 판매자(storeId)가 일치하는지 확인
+                if (!order.getStoreid().getStoreId().equals(storeId)) {
+                    map.put("status", 403); // 권한 없음
+                    map.put("message", "이 주문은 해당 판매자가 관리하는 주문이 아닙니다.");
+                    return map;
+                }
+        
+                // 주문 상태가 이미 취소되었으면 취소할 수 없음
+                Optional<Status> latestStatus = statusRepository.findTopByOrdernoOrderByRegdateDesc(order);
+                Status status = latestStatus.orElse(null);
+                if (status != null && "주문 취소".equals(status.getStatus())) {
+                    map.put("status", 400);
+                    map.put("message", "이미 취소된 주문입니다.");
+                    return map;
+                }
+        
+                // **pay 값에 따른 처리**
+                if (order.getPay() == 1) {
+                    // 카카오페이 결제 취소 로직 호출
+                    try {
+                        Map<String, String> kakaoCancelResponse = kakaoPayService.kakaoPayCancel(orderNo);
+                        if (!"200".equals(kakaoCancelResponse.get("status"))) {
+                            map.put("status", 500);
+                            map.put("message", "카카오페이 결제 취소 중 오류가 발생했습니다.");
+                            return map;
+                        }
+                        map.put("kakaoPayResponse", kakaoCancelResponse);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        map.put("status", 500);
+                        map.put("message", "카카오페이 결제 취소 중 오류가 발생했습니다.");
+                        return map;
+                    }
+                } else {
+                    // 주문 상태를 "주문 취소"로 변경
+                    Status cancelStatus = new Status();
+                    cancelStatus.setOrderno(order);
+                    cancelStatus.setStatus("주문 취소");
+                    statusRepository.save(cancelStatus);
+                }
+        
+                map.put("status", 200);
+                map.put("message", "주문이 성공적으로 취소되었습니다.");
+                return map;
+        
+            } catch (Exception e) {
+                e.printStackTrace();
+                map.put("status", -1);
+                map.put("message", "서버 오류가 발생했습니다.");
+            }
+            return map;
+        }
+
+
+
+
+
+
 
     // 127.0.0.1:8080/ROOT/api/order/cancel
     @PostMapping("/cancel")
