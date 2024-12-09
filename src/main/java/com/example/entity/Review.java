@@ -57,4 +57,7 @@ public class Review {
     // storeName을 임시로 저장할 필드
     @Transient
     private String storeName;
+
+    @Transient
+    private String nickname;
 }
