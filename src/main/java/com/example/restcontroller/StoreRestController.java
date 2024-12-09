@@ -180,7 +180,7 @@ public class StoreRestController {
     @PutMapping(value = "/update.do", consumes = { "multipart/form-data" })
 public Map<String, Object> updatePUT(@RequestPart("store") Store store,
         @RequestHeader(name = "Authorization") String token,
-        @RequestPart(value = "file") MultipartFile file) {
+        @RequestPart(value = "file", required = false) MultipartFile file) {
     Map<String, Object> map = new HashMap<>();
 
     // Bearer 접두사를 제거하여 순수 토큰만 전달

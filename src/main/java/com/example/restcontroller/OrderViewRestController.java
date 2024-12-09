@@ -68,8 +68,8 @@ public class OrderViewRestController {
                 // 주문 상태가 "주문 완료"인 경우에만 처리
                 if ("주문 완료".equals(order.getOrderstatus())) {
                     String orderDate = order.getOrdertime().toLocalDate().toString();
-                    dailySales.put(orderDate, dailySales.getOrDefault(orderDate, 0) + order.getTotalprice());
-                    totalMonthlySales += order.getTotalprice();
+                    dailySales.put(orderDate, dailySales.getOrDefault(orderDate, 0) + order.getUnitprice());
+                    totalMonthlySales += order.getUnitprice();
                 }
             }
 
@@ -194,6 +194,8 @@ public class OrderViewRestController {
                 return resultList;
             }
 
+            orders.sort((o1, o2) -> o2.getOrdertime().compareTo(o1.getOrdertime()));
+            
             // 주문 내역이 있을 경우
             for (OrderView order : orders) {
                 Map<String, Object> orderMap = new HashMap<>();

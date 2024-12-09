@@ -52,9 +52,12 @@ public class Review {
     Date regdate;
 
     @Transient
-    String imageurl="/ROOT/api/review/image?no=";
+    String imageurl="/ROOT/store/imagereview?no=";
 
     // storeName을 임시로 저장할 필드
     @Transient
     private String storeName;
+
+    @Transient
+    private String nickname;
 }
