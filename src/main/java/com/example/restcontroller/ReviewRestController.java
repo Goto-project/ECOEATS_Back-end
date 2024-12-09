@@ -109,6 +109,8 @@ public class ReviewRestController {
                 ReviewImage reviewImage = reviewImageRepository.findByReviewno(review);
                 if (reviewImage != null) {
                     review.setImageurl(review.getImageurl() + reviewImage.getReviewimageNo());
+                }else {
+                    review.setImageurl(review.getImageurl() + "0"); // 기본 이미지용 번호
                 }
             }
     
@@ -356,28 +358,7 @@ public class ReviewRestController {
         return map;
     }
 
-// http://127.0.0.1:8080/ROOT/image?no=3
-    //<img th:src="/ROOT/seller/image?no=1" />
-    //이미지 url 
-    @GetMapping(value = "/image")
-    public ResponseEntity<byte[]> imagePreview(@RequestParam(name = "no") int no) throws IOException {
-        ReviewImage obj = reviewImageRepository.findById(no).orElse(null);
-        HttpHeaders headers = new HttpHeaders();
-        ResponseEntity<byte[]> response = null;
-        
-        // DB에 이미지가 있는 경우
-        if (obj != null && obj.getFiledata() != null && obj.getFiledata().length > 0) {
-            headers.setContentType(MediaType.parseMediaType(obj.getFiletype()));
-            response = new ResponseEntity<>(obj.getFiledata(), headers, HttpStatus.OK);
-            return response;
-        }
-        
-        // DB에 이미지가 없는 경우 기본 이미지 반환
-        InputStream in = resourceLoader.getResource("classpath:/static/img/default.png").getInputStream();
-        headers.setContentType(MediaType.IMAGE_PNG);
-        response = new ResponseEntity<>(in.readAllBytes(), headers, HttpStatus.OK);
-        return response;
-    }
+
 
 
     
