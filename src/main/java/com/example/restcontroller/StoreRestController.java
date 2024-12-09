@@ -182,6 +182,9 @@ public Map<String, Object> updatePUT(@RequestPart("store") Store store,
         @RequestHeader(name = "Authorization") String token,
         @RequestPart(value = "file", required = false) MultipartFile file) {
     Map<String, Object> map = new HashMap<>();
+        System.out.println(store.toString());
+
+        System.out.println("----------------------");
 
     // Bearer 접두사를 제거하여 순수 토큰만 전달
     String rawToken = token.replace("Bearer ", "").trim();
@@ -240,13 +243,13 @@ public Map<String, Object> updatePUT(@RequestPart("store") Store store,
             seller.setEndPickup(store.getEndPickup());
         }
 
-        if (store.getLatitude() != null) {
-            seller.setLatitude(store.getLatitude());
-        }
+        // if (store.getLatitude() != null) {
+        //     seller.setLatitude(store.getLatitude());
+        // }
 
-        if (store.getLongitude() != null) {
-            seller.setLongitude(store.getLongitude());
-        }
+        // if (store.getLongitude() != null) {
+        //     seller.setLongitude(store.getLongitude());
+        // }
 
         // 이미지 업데이트 로직
         if (file != null && !file.isEmpty()) {
