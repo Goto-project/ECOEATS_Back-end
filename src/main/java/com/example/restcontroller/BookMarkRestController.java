@@ -69,25 +69,33 @@ public class BookMarkRestController {
 
             // 북마크한 가게 정보를 조회하여 리스트에 추가
             for (BookMark bookmark : bookmarks) {
-                StoreView storeView = storeViewRepository.findById(bookmark.getStoreId().getStoreId()).orElse(null);
+                // storeView 조회 시 삭제되지 않은 가게만 선택
+                Optional<StoreView> storeViewOptional = storeViewRepository
+                        .findById(bookmark.getStoreId().getStoreId());
 
-                if (storeView != null) {
-                    Map<String, Object> storeMap = new HashMap<>();
-                    storeMap.put("storeId", storeView.getStoreid());
-                    storeMap.put("storeName", storeView.getStoreName());
-                    storeMap.put("address", storeView.getAddress());
-                    storeMap.put("phone", storeView.getPhone());
-                    storeMap.put("category", storeView.getCategory());
-                    // storeimageno가 null이면 0으로 처리
-                    String storeImageNo = (storeView.getStoreimageno() != null) ? storeView.getStoreimageno().toString()
-                            : "0";
-                    String imageUrl = storeView.getImageurl() + storeImageNo;
-                    storeMap.put("imageurl", imageUrl);
+                if (storeViewOptional.isPresent()) {
+                    StoreView storeView = storeViewOptional.get();
 
-                    resultList.add(storeMap);
+                    // 삭제되지 않은 가게만 처리
+                    if (!storeView.isIsdeleted()) {
+                        Map<String, Object> storeMap = new HashMap<>();
+                        storeMap.put("storeId", storeView.getStoreid());
+                        storeMap.put("storeName", storeView.getStoreName());
+                        storeMap.put("address", storeView.getAddress());
+                        storeMap.put("phone", storeView.getPhone());
+                        storeMap.put("category", storeView.getCategory());
+
+                        // storeimageno가 null이면 0으로 처리
+                        String storeImageNo = (storeView.getStoreimageno() != null)
+                                ? storeView.getStoreimageno().toString()
+                                : "0";
+                        String imageUrl = storeView.getImageurl() + storeImageNo;
+                        storeMap.put("imageurl", imageUrl);
+
+                        resultList.add(storeMap);
+                    }
                 }
             }
-
             responseMap.put("status", 200);
             responseMap.put("data", resultList);
 
@@ -181,60 +189,59 @@ public class BookMarkRestController {
     @PostMapping(value = "/insert.json")
     public Map<String, Object> insertPOST(
             @RequestBody BookMark obj,
-            @RequestHeader(name = "Authorization") String token) { 
-    
+            @RequestHeader(name = "Authorization") String token) {
+
         Map<String, Object> map = new HashMap<>();
-        
+
         try {
             // Bearer 접두사 제거하고 토큰만 추출
             String rawToken = token.replace("Bearer ", "").trim();
-            
+
             // 토큰 검증
             Map<String, Object> tokenData = tokenCreate.validateCustomerToken(rawToken);
             String customerEmail = (String) tokenData.get("customerEmail");
-            
+
             if (customerEmail == null) {
                 map.put("status", 403);
                 map.put("result", "유효하지 않은 토큰입니다.");
                 return map;
             }
-    
+
             // 요청된 북마크의 사용자 이메일과 토큰에서 추출한 이메일이 일치하는지 확인
             if (!customerEmail.equals(obj.getCustomerEmail().getCustomerEmail())) {
                 map.put("status", 403);
                 map.put("result", "북마크 추가 권한이 없습니다.");
                 return map;
             }
-    
+
             // 이미 북마크가 존재하는지 확인
             List<BookMark> existingBookmarks = bookMarkRepository
                     .findByCustomerEmail_CustomerEmailAndStoreId_StoreId(
                             obj.getCustomerEmail().getCustomerEmail(),
                             obj.getStoreId().getStoreId());
-    
+
             if (!existingBookmarks.isEmpty()) {
                 map.put("status", 400);
                 map.put("result", "이미 북마크에 추가된 매장입니다.");
                 return map;
             }
-    
+
             // 북마크 저장
             BookMark savedBookmark = bookMarkRepository.save(obj);
-    
+
             // 성공 응답
             map.put("status", 200);
             map.put("result", "북마크가 성공적으로 추가되었습니다.");
             map.put("savedBookmark", savedBookmark);
-    
+
         } catch (Exception e) {
             e.printStackTrace();
             map.put("status", -1);
             map.put("error", "북마크 추가 중 오류가 발생했습니다.");
         }
-    
+
         return map;
     }
-    
 
     // 즐겨찾기 삭제 (DeleteMapping)
     // 127.0.0.1:8080/ROOT/api/bookmark/delete.json
