@@ -40,7 +40,7 @@ public class StoreViewRestController {
         Map<String, Object> map = new HashMap<>();
         try {
             // 가게 이름으로 검색
-            List<StoreView> list = storeViewRepository.findByStoreNameContainingIgnoreCase(storeName);
+            List<StoreView> list = storeViewRepository.findByStoreNameContainingIgnoreCaseAndIsdeleted(storeName, false);
 
             // 각 가게에 이미지 URL 추가
             for (StoreView storeView : list) {
@@ -104,7 +104,7 @@ public class StoreViewRestController {
         Map<String, Object> map = new HashMap<>();
         try {
             // of(페이지 번호 (0부터), 페이지 개수, 정렬)
-            List<StoreView> list = storeViewRepository.findAll();
+            List<StoreView> list = storeViewRepository.findAllActiveStores();
             long total = storeViewRepository.count();
 
             // 각 가게에 이미지 URL 추가

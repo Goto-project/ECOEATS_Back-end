@@ -26,12 +26,13 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
             FROM storedetailview s
             WHERE
                 -- latitude, longitude가 null이 아닌 경우만 처리
-                s.latitude IS NOT NULL 
+                s.latitude IS NOT NULL
                 AND s.longitude IS NOT NULL
                 AND ST_Distance_Sphere(
                     POINT(:customerLongitude, :customerLatitude),
-                    POINT(s.longitude, s.latitude)) 
+                    POINT(s.longitude, s.latitude))
                 AND (:category IS NULL OR s.category = :category)
+                AND s.isdeleted = 0
             ORDER BY
                 CASE
                     WHEN :sortBy = 'distance' THEN COALESCE(ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)), 0)
@@ -39,9 +40,12 @@ public interface StoreViewRepository extends JpaRepository<StoreView, String> {
                     WHEN :sortBy = 'bookmark' THEN -COALESCE(s.bookmarkcount, 0)
                     ELSE COALESCE(ST_Distance_Sphere(POINT(:customerLongitude, :customerLatitude), POINT(s.longitude, s.latitude)), 0)
                 END
-            """, 
-            nativeQuery = true)
-    List<StoreView> findStoresWithinRadius(BigDecimal customerLatitude, BigDecimal customerLongitude, String category, String sortBy);
+            """, nativeQuery = true)
+    List<StoreView> findStoresWithinRadius(BigDecimal customerLatitude, BigDecimal customerLongitude, String category,
+            String sortBy);
 
-    List<StoreView> findByStoreNameContainingIgnoreCase(String storeName);
+    List<StoreView> findByStoreNameContainingIgnoreCaseAndIsdeleted(String storeName, boolean isdeleted);
+
+    @Query("SELECT s FROM StoreView s WHERE s.isdeleted = false")
+    List<StoreView> findAllActiveStores();
 }
