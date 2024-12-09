@@ -68,8 +68,8 @@ public class OrderViewRestController {
                 // 주문 상태가 "주문 완료"인 경우에만 처리
                 if ("주문 완료".equals(order.getOrderstatus())) {
                     String orderDate = order.getOrdertime().toLocalDate().toString();
-                    dailySales.put(orderDate, dailySales.getOrDefault(orderDate, 0) + order.getTotalprice());
-                    totalMonthlySales += order.getTotalprice();
+                    dailySales.put(orderDate, dailySales.getOrDefault(orderDate, 0) + order.getUnitprice());
+                    totalMonthlySales += order.getUnitprice();
                 }
             }
 
