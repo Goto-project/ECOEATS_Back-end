@@ -71,45 +71,43 @@ public class OrderRestController {
 
 
     // 매장별 오늘 주문 목록 조회
-    @GetMapping("/today")
+@GetMapping("/today")
 public List<Map<String, Object>> getOrdersByStoreToday(@RequestHeader(name = "Authorization") String token) {
     List<Map<String, Object>> resultList = new ArrayList<>();
-
-    // Bearer 접두사를 제거하여 순수 토큰만 전달
     String rawToken = token.replace("Bearer ", "").trim();
 
     try {
-        // 토큰을 검증하고 매장 정보를 가져옵니다.
+        // 토큰 검증 및 매장 정보 가져오기
         Map<String, Object> tokenData = tokenCreate.validateSellerToken(rawToken);
         String storeId = (String) tokenData.get("storeId");
 
-        // 매장 정보가 없을 경우
         if (storeId == null) {
             Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("status", 401); // 인증되지 않은 요청
+            errorMap.put("status", 401);
             errorMap.put("message", "유효하지 않은 매장 정보입니다.");
-            resultList.add(errorMap); // 에러 정보 추가
+            resultList.add(errorMap);
             return resultList;
         }
 
-        // 오늘 날짜 범위 설정 (orderTime을 기준으로)
+        // 오늘 날짜 범위
         LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
         LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
 
-        // 매장 ID와 오늘 날짜로 주문 조회 (OrderView를 사용)
+        // 매장 ID와 날짜 범위로 모든 주문 상태 조회
         List<OrderView> orders = orderViewRepository.findByStoreidAndOrdertimeBetween(storeId, startOfDay, endOfDay);
 
-        // 주문 내역이 없을 경우
-        if (orders.isEmpty()) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("status", 404);
-            map.put("message", "오늘의 주문 내역이 없습니다.");
-            // resultList.add(map); // 결과에 추가
-            return resultList;
+        // 주문 상태 최신화: 각 orderNo별로 가장 최근 상태 가져오기
+        Map<String, OrderView> latestOrders = new HashMap<>();
+        for (OrderView order : orders) {
+            String orderNo = order.getOrdernumber();
+            if (!latestOrders.containsKey(orderNo) || 
+                latestOrders.get(orderNo).getOrdertime().isBefore(order.getOrdertime())) {
+                latestOrders.put(orderNo, order); // 최신 상태 업데이트
+            }
         }
 
-        // 주문 내역이 있을 경우
-        for (OrderView order : orders) {
+        // 결과 리스트 구성
+        for (OrderView order : latestOrders.values()) {
             Map<String, Object> orderMap = new HashMap<>();
             orderMap.put("ordernumber", order.getOrdernumber());
             orderMap.put("paymentstatus", order.getPaymentstatus());
@@ -127,19 +125,19 @@ public List<Map<String, Object>> getOrdersByStoreToday(@RequestHeader(name = "Au
             orderMap.put("endpickup", order.getEndpickup());
             orderMap.put("storeid", order.getStoreid());
 
-            resultList.add(orderMap); // 각 주문을 결과 리스트에 추가
+            resultList.add(orderMap);
         }
 
-    } catch (Exception e) {
-        // 예외 처리
-        System.err.println(e.getMessage());
-        Map<String, Object> errorMap = new HashMap<>();
-        errorMap.put("status", -1);
-        errorMap.put("message", "토큰 검증 중 오류가 발생했습니다.");
-        resultList.add(errorMap); // 에러 정보 추가
-    }
+        return resultList;
 
-    return resultList;
+    } catch (Exception e) {
+        e.printStackTrace();
+        Map<String, Object> errorMap = new HashMap<>();
+        errorMap.put("status", 500);
+        errorMap.put("message", "서버 오류가 발생했습니다.");
+        resultList.add(errorMap);
+        return resultList;
+    }
 }
 
 
@@ -217,6 +215,18 @@ public List<Map<String, Object>> getOrdersByStoreToday(@RequestHeader(name = "Au
                     cancelStatus.setStatus("주문 취소");
                     statusRepository.save(cancelStatus);
                 }
+
+
+                // 카트 아이템의 수량을 다시 더해주기
+            List<Cart> cartItems = cartRepository.findByOrderno(order);
+            for (Cart cart : cartItems) {
+                Optional<DailyMenu> optDailyMenu = dailyMenuRepository.findById(cart.getDailymenuNo().getDailymenuNo());
+                if (optDailyMenu.isPresent()) {
+                    DailyMenu dailyMenu = optDailyMenu.get();
+                    dailyMenu.setQty(dailyMenu.getQty() + cart.getQty()); // 취소된 카트 수량만큼 재고 회복
+                    dailyMenuRepository.save(dailyMenu);
+                }
+            }
         
                 map.put("status", 200);
                 map.put("message", "주문이 성공적으로 취소되었습니다.");
