@@ -20,12 +20,13 @@ import lombok.RequiredArgsConstructor;
 public class PickupRestController {
     
     final PickupRepository pickupRepository;
-    @PutMapping("/update/{pickupNo}")
-    public Map<String, Object> updatePickupPUT(@PathVariable int pickupNo) {
+
+    @PutMapping("/update/{orderno}")
+    public Map<String, Object> updatePickupPUT(@PathVariable String orderno) {
         Map<String, Object> response = new HashMap<>();
         try {
             // 특정 Pickup 조회
-            Optional<Pickup> optionalPickup = pickupRepository.findById(pickupNo);
+            Optional<Pickup> optionalPickup = pickupRepository.findByOrderno_Orderno(orderno);
             if (optionalPickup.isPresent()) {
                 Pickup pickup = optionalPickup.get();
                 pickup.setPickup(1); // pickup 상태를 1로 설정
