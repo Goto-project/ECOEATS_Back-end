@@ -24,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.entity.CustomerMember;
+import com.example.entity.Menu;
 import com.example.entity.Review;
 import com.example.entity.ReviewImage;
 import com.example.entity.Store;
+import com.example.repository.MenuRepository;
 import com.example.repository.ReviewImageRepository;
 import com.example.repository.ReviewRepository;
 
@@ -41,6 +43,7 @@ public class ReviewRestController {
     final ReviewRepository reviewRepository;
     final ReviewImageRepository reviewImageRepository;
     final ResourceLoader resourceLoader;
+    final MenuRepository menuRepository;
 
     // 127.0.0.1:8080/ROOT/api/review/selectall.json?storeId=a208
     // 리뷰 전체보기
@@ -117,6 +120,21 @@ public class ReviewRestController {
                     review.setImageurl(review.getImageurl() + reviewImage.getReviewimageNo());
                 } else {
                     review.setImageurl(review.getImageurl() + "0"); // 기본 이미지용 번호
+                }
+
+                // 메뉴 정보 가져오기
+                List<Menu> menus = menuRepository.findByStoreId_StoreIdAndIsdeletedFalse(store.getStoreId());
+                if (menus != null && !menus.isEmpty()) {
+                    // 전체 메뉴 이름을 하나의 문자열로 결합
+                    StringBuilder menuNames = new StringBuilder();
+                    for (Menu menu : menus) {
+                        menuNames.append(menu.getName()).append(", ");
+                    }
+                    // 마지막 ", " 제거
+                    if (menuNames.length() > 0) {
+                        menuNames.setLength(menuNames.length() - 2);
+                    }
+                    review.setMenu(menuNames.toString()); // 전체 메뉴 이름을 설정
                 }
             }
 
