@@ -60,4 +60,7 @@ public class Review {
 
     @Transient
     private String nickname;
+
+    @Transient
+    private String menu;
 }
