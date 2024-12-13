@@ -24,6 +24,7 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     List<Review> findByStoreId(Store storeId);
 
     List<Review> findByCustomerEmail(CustomerMember customerEmail);
+    
 
     
     
